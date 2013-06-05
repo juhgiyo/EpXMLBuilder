@@ -1,0 +1,725 @@
+
+// EpXMLBuilderDlg.cpp : implementation file
+//
+
+#include "stdafx.h"
+#include "EpXMLBuilder.h"
+#include "EpXMLBuilderDlg.h"
+
+#include <queue>
+#ifdef _DEBUG
+#define new DEBUG_NEW
+#endif
+
+
+// CAboutDlg dialog used for App About
+
+class CAboutDlg : public CDialog
+{
+public:
+	CAboutDlg();
+
+// Dialog Data
+	enum { IDD = IDD_ABOUTBOX };
+
+	protected:
+	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+
+// Implementation
+protected:
+	DECLARE_MESSAGE_MAP()
+};
+
+CAboutDlg::CAboutDlg() : CDialog(CAboutDlg::IDD)
+{
+}
+
+void CAboutDlg::DoDataExchange(CDataExchange* pDX)
+{
+	CDialog::DoDataExchange(pDX);
+}
+
+BEGIN_MESSAGE_MAP(CAboutDlg, CDialog)
+END_MESSAGE_MAP()
+
+
+// CEpXMLBuilderDlg dialog
+
+
+
+
+CEpXMLBuilderDlg::CEpXMLBuilderDlg(CWnd* pParent /*=NULL*/)
+	: CDialog(CEpXMLBuilderDlg::IDD, pParent)
+{
+	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+}
+
+void CEpXMLBuilderDlg::DoDataExchange(CDataExchange* pDX)
+{
+	CDialog::DoDataExchange(pDX);
+	DDX_Control(pDX, IDC_BTN_NEW, m_btnNew);
+	DDX_Control(pDX, IDC_BTN_LOAD, m_btnLoad);
+	DDX_Control(pDX, IDC_BTN_SAVE, m_btnSave);
+	DDX_Control(pDX, IDC_BTN_SAVE_AS, m_btnSaveAs);
+	DDX_Control(pDX, IDC_CB_NODE, m_cbNodeName);
+	DDX_Control(pDX, IDC_CB_VALUE, m_cbNodeValue);
+	DDX_Control(pDX, IDC_BTN_ADD, m_btnAdd);
+	DDX_Control(pDX, IDC_BTN_DELETE, m_btnDelete);
+	DDX_Control(pDX, IDC_LB_FILENAME, m_lbFilename);
+	DDX_Control(pDX, IDC_TREE1, m_treeXML);
+	DDX_Control(pDX, IDC_TB_ROOT, m_tbRoot);
+	DDX_Control(pDX, IDC_BTN_LOAD_PRE_TEXT, m_btnLoadTextDB);
+}
+
+BEGIN_MESSAGE_MAP(CEpXMLBuilderDlg, CDialog)
+	ON_WM_SYSCOMMAND()
+	ON_WM_PAINT()
+	ON_WM_QUERYDRAGICON()
+ON_BN_CLICKED(IDC_BTN_NEW, &CEpXMLBuilderDlg::OnBnClickedBtnNew)
+ON_BN_CLICKED(IDC_BTN_LOAD, &CEpXMLBuilderDlg::OnBnClickedBtnLoad)
+ON_BN_CLICKED(IDC_BTN_SAVE, &CEpXMLBuilderDlg::OnBnClickedBtnSave)
+ON_BN_CLICKED(IDC_BTN_SAVE_AS, &CEpXMLBuilderDlg::OnBnClickedBtnSaveAs)
+ON_CBN_EDITCHANGE(IDC_CB_NODE, &CEpXMLBuilderDlg::OnCbnEditchangeCbNode)
+ON_CBN_EDITCHANGE(IDC_CB_VALUE, &CEpXMLBuilderDlg::OnCbnEditchangeCbValue)
+ON_BN_CLICKED(IDC_BTN_ADD, &CEpXMLBuilderDlg::OnBnClickedBtnAdd)
+ON_BN_CLICKED(IDC_BTN_DELETE, &CEpXMLBuilderDlg::OnBnClickedBtnDelete)
+ON_NOTIFY(TVN_SELCHANGED, IDC_TREE1, &CEpXMLBuilderDlg::OnTvnSelchangedTree1)
+ON_NOTIFY(TVN_KEYDOWN, IDC_TREE1, &CEpXMLBuilderDlg::OnTvnKeydownTree1)
+ON_BN_CLICKED(IDC_BUTTON1, &CEpXMLBuilderDlg::OnBnClickedButton1)
+ON_WM_CLOSE()
+ON_BN_CLICKED(IDCANCEL, &CEpXMLBuilderDlg::OnBnClickedCancel)
+ON_BN_CLICKED(IDC_BTN_LOAD_PRE_TEXT, &CEpXMLBuilderDlg::OnBnClickedBtnLoadPreText)
+END_MESSAGE_MAP()
+
+
+// CEpXMLBuilderDlg message handlers
+
+BOOL CEpXMLBuilderDlg::OnInitDialog()
+{
+	CDialog::OnInitDialog();
+
+	// Add "About..." menu item to system menu.
+
+	// IDM_ABOUTBOX must be in the system command range.
+	ASSERT((IDM_ABOUTBOX & 0xFFF0) == IDM_ABOUTBOX);
+	ASSERT(IDM_ABOUTBOX < 0xF000);
+
+	CMenu* pSysMenu = GetSystemMenu(FALSE);
+	if (pSysMenu != NULL)
+	{
+		BOOL bNameValid;
+		CString strAboutMenu;
+		bNameValid = strAboutMenu.LoadString(IDS_ABOUTBOX);
+		ASSERT(bNameValid);
+		if (!strAboutMenu.IsEmpty())
+		{
+			pSysMenu->AppendMenu(MF_SEPARATOR);
+			pSysMenu->AppendMenu(MF_STRING, IDM_ABOUTBOX, strAboutMenu);
+		}
+	}
+
+	// Set the icon for this dialog.  The framework does this automatically
+	//  when the application's main window is not a dialog
+	SetIcon(m_hIcon, TRUE);			// Set big icon
+	SetIcon(m_hIcon, FALSE);		// Set small icon
+
+	// TODO: Add extra initialization here
+
+	// Set Anchors
+	m_resizer.Hook(this);
+
+	m_resizer.SetAnchor(IDC_BTN_LOAD_PRE_TEXT,ANCHOR_LEFT|ANCHOR_TOP);
+
+	m_resizer.SetAnchor(IDC_BTN_DELETE,ANCHOR_LEFT|ANCHOR_TOP);
+	
+	m_resizer.SetAnchor(IDC_TREE1,ANCHOR_RIGHT|ANCHOR_TOP|ANCHOR_LEFT|ANCHOR_BOTTOM);
+
+	m_resizer.SetAnchor(IDC_BTN_NEW,ANCHOR_RIGHT|ANCHOR_TOP);
+	m_resizer.SetAnchor(IDC_BTN_LOAD,ANCHOR_RIGHT|ANCHOR_TOP);
+	m_resizer.SetAnchor(IDC_BTN_SAVE,ANCHOR_RIGHT|ANCHOR_TOP);
+	m_resizer.SetAnchor(IDC_BTN_SAVE_AS,ANCHOR_RIGHT|ANCHOR_TOP);
+	m_resizer.SetAnchor(IDC_LB_FILENAME,ANCHOR_RIGHT|ANCHOR_TOP);
+
+	m_resizer.SetAnchor(IDC_ST_ROOT_GROUP,ANCHOR_RIGHT|ANCHOR_TOP);
+	m_resizer.SetAnchor(IDC_ST_ROOTNAME,ANCHOR_RIGHT|ANCHOR_TOP);
+	m_resizer.SetAnchor(IDC_TB_ROOT,ANCHOR_RIGHT|ANCHOR_TOP);
+	m_resizer.SetAnchor(IDC_BUTTON1,ANCHOR_RIGHT|ANCHOR_TOP);
+
+
+	m_resizer.SetAnchor(IDC_ST_NODE_GROUP,ANCHOR_RIGHT|ANCHOR_TOP);
+	m_resizer.SetAnchor(IDC_CB_NODE,ANCHOR_RIGHT|ANCHOR_TOP);
+	m_resizer.SetAnchor(IDC_CB_VALUE,ANCHOR_RIGHT|ANCHOR_TOP);
+	m_resizer.SetAnchor(IDC_BTN_ADD,ANCHOR_RIGHT|ANCHOR_TOP);
+	m_resizer.SetAnchor(IDC_ST_NODE_NAME,ANCHOR_RIGHT|ANCHOR_TOP);
+	m_resizer.SetAnchor(IDC_ST_NODE_VALUE,ANCHOR_RIGHT|ANCHOR_TOP);
+
+	m_resizer.SetAnchor(IDCANCEL,ANCHOR_RIGHT|ANCHOR_BOTTOM);
+
+	
+	BOOL bOk = FALSE;
+	m_resizer.SetShowResizeGrip(TRUE);
+
+	bOk = m_resizer.InvokeOnResized();
+	ASSERT( bOk);
+
+
+	// Set Notification window
+	m_notifyWin.Create(this);
+	m_notifyWin.SetSkin(IDB_BITMAP1);
+	m_notifyWin.SetTextFont(_T("Arial"),90,TN_TEXT_NORMAL,TN_TEXT_UNDERLINE);
+	m_notifyWin.SetTextColor(RGB(0,0,0),RGB(0,0,200));
+	m_notifyWin.SetTextRect(CRect(10,40,m_notifyWin.m_nSkinWidth-10,m_notifyWin.m_nSkinHeight-25));
+
+
+	// Load Pre Text Database
+	m_textFile=TextFile(FILE_ENCODING_TYPE_UTF16LE);
+
+	CString iniFileName=FolderHelper::GetModuleFileName().c_str();
+	iniFileName.Replace(_T(".exe"),_T(".ini"));
+
+	if(m_textFile.LoadFromFile(iniFileName.GetString()))
+	{
+		PreTestParser::Parse(m_textFile,m_nodeNameMap);
+	}
+
+	// Rest of Settings
+
+	m_isChanged=false;
+	m_lbFilename.SetWindowText(_T(""));
+	XMLInfo info=XMLInfo::xmlDefault;
+	info.m_isWriteComment=true;
+	m_xmlFile=XMLFile(FILE_ENCODING_TYPE_UTF16LE,info);
+	m_cbNodeName.SetFocus();
+
+	m_tbRoot.SetWindowText(_T("Root"));
+	m_rootName=_T("Root");
+	m_selectedTreeItem=m_treeXML.InsertItem(m_rootName.GetString());
+	XNode *node= &m_xmlFile;
+	node->m_name=m_rootName;
+	m_treeXML.SelectItem(m_selectedTreeItem);
+
+	return TRUE;  // return TRUE  unless you set the focus to a control
+}
+
+void CEpXMLBuilderDlg::OnSysCommand(UINT nID, LPARAM lParam)
+{
+	if ((nID & 0xFFF0) == IDM_ABOUTBOX)
+	{
+		CAboutDlg dlgAbout;
+		dlgAbout.DoModal();
+	}
+	else
+	{
+		CDialog::OnSysCommand(nID, lParam);
+	}
+}
+
+// If you add a minimize button to your dialog, you will need the code below
+//  to draw the icon.  For MFC applications using the document/view model,
+//  this is automatically done for you by the framework.
+
+void CEpXMLBuilderDlg::OnPaint()
+{
+	if (IsIconic())
+	{
+		CPaintDC dc(this); // device context for painting
+
+		SendMessage(WM_ICONERASEBKGND, reinterpret_cast<WPARAM>(dc.GetSafeHdc()), 0);
+
+		// Center icon in client rectangle
+		int cxIcon = GetSystemMetrics(SM_CXICON);
+		int cyIcon = GetSystemMetrics(SM_CYICON);
+		CRect rect;
+		GetClientRect(&rect);
+		int x = (rect.Width() - cxIcon + 1) / 2;
+		int y = (rect.Height() - cyIcon + 1) / 2;
+
+		// Draw the icon
+		dc.DrawIcon(x, y, m_hIcon);
+	}
+	else
+	{
+		CDialog::OnPaint();
+	}
+}
+
+// The system calls this function to obtain the cursor to display while the user drags
+//  the minimized window.
+HCURSOR CEpXMLBuilderDlg::OnQueryDragIcon()
+{
+	return static_cast<HCURSOR>(m_hIcon);
+}
+
+bool CEpXMLBuilderDlg::continueOnChanged()
+{
+	if(m_isChanged)
+	{
+		int result=MessageBox(_T("Current XML is not saved.\n\nDo you want to save current XML?"),_T("Notice"),MB_YESNOCANCEL);
+		CString fileName;
+		if(result==IDYES)
+		{
+			m_lbFilename.GetWindowText(fileName);
+			if(fileName.GetLength()<=0)
+			{
+				CFileDialog saveDialog(FALSE, _T("xml"), NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, _T("XML Files (*.xml)|*.xml|All Files (*.*)|*.*||"),this);
+				int result =saveDialog.DoModal();
+				if(result==IDCANCEL)
+					return false;
+				if(saveDialog.GetPathName().GetLength()<=0)
+					return false;
+				fileName=saveDialog.GetPathName();
+			}
+			m_xmlFile.SaveToFile(fileName);
+		}
+		else if(result==IDCANCEL )
+		{
+			return false;
+		}
+	}
+	return true;
+}
+void CEpXMLBuilderDlg::OnBnClickedBtnNew()
+{
+	if(!continueOnChanged())
+		return;
+	m_xmlFile.Clear();
+	m_treeXML.DeleteAllItems();
+	m_rootName=_T("Root");
+	m_tbRoot.SetWindowText(_T("Root"));
+	m_selectedTreeItem=m_treeXML.InsertItem(m_rootName.GetString());
+	m_treeXML.SelectItem(m_selectedTreeItem);
+	XNode *node= &m_xmlFile;
+	node->m_name=m_rootName;
+	m_isChanged=false;
+	m_lbFilename.SetWindowText(_T(""));
+}
+
+HTREEITEM CEpXMLBuilderDlg::insertNode(CString nodeName, CString nodeValue,HTREEITEM insertUnder,XNode *node)
+{
+	CString treeElemString=format(nodeName,nodeValue);
+	HTREEITEM insertedItem=m_treeXML.InsertItem(treeElemString.GetString(),insertUnder,TVI_LAST);
+	m_treeMap[insertedItem]=node;
+	m_treeXML.Expand(insertUnder,TVE_EXPAND);
+	return insertedItem;
+}
+
+struct InsertLoopStruct{
+	HTREEITEM m_rootItem;
+	vector<XNode*> m_childList;
+};
+
+void CEpXMLBuilderDlg::traverseXMLAndInsert()
+{
+	queue<InsertLoopStruct> traverseQueue;
+	InsertLoopStruct newQueueNode;
+	newQueueNode.m_rootItem=m_treeXML.GetFirstVisibleItem();
+	XNode *curNode=&m_xmlFile;
+	for(int childTrav=0;childTrav<curNode->GetChildCount();childTrav++)
+	{
+		XNode *childeNode=curNode->GetChild(childTrav);
+		newQueueNode.m_childList.push_back(childeNode);
+	}
+	if(newQueueNode.m_childList.size())
+		traverseQueue.push(newQueueNode);
+
+	while(!traverseQueue.empty())
+	{
+		InsertLoopStruct curStruct=traverseQueue.front();
+		traverseQueue.pop();
+		for(int childTrav=0;childTrav<curStruct.m_childList.size();childTrav++)
+		{
+			curNode=curStruct.m_childList.at(childTrav);
+			HTREEITEM insertedItem=insertNode(curNode->m_name,curNode->m_value,curStruct.m_rootItem,curNode);
+
+			newQueueNode.m_rootItem=insertedItem;
+			newQueueNode.m_childList.clear();
+			for(int childTrav=0;childTrav<curNode->GetChildCount();childTrav++)
+			{
+				XNode *childeNode=curNode->GetChild(childTrav);
+				newQueueNode.m_childList.push_back(childeNode);
+			}
+			if(newQueueNode.m_childList.size())
+				traverseQueue.push(newQueueNode);
+		}
+		
+	}
+}
+void CEpXMLBuilderDlg::OnBnClickedBtnLoad()
+{
+	if(!continueOnChanged())
+		return;
+	CString fileName;
+	
+
+	CFileDialog fileDialog(TRUE,_T("xml"),NULL,OFN_FILEMUSTEXIST,_T("XML Files (*.xml)|*.xml|All Files (*.*)|*.*||"),this );
+	fileDialog.m_pOFN->lpstrTitle=_T("XML Data File");
+	fileDialog.m_pOFN->lpstrInitialDir=_T("c:");
+	int result = fileDialog.DoModal();
+	if(result==IDOK && fileDialog.GetPathName().GetLength()>0)
+	{
+		fileName=fileDialog.GetPathName();
+	}
+	else
+		return;
+	
+	m_xmlFile.Clear();
+	m_treeXML.DeleteAllItems();
+	m_xmlFile.LoadFromFile(fileName);
+
+	XNode * node=&m_xmlFile;
+	m_rootName=node->m_name;
+	m_selectedTreeItem=m_treeXML.InsertItem(m_rootName);
+	m_treeXML.SelectItem(m_selectedTreeItem);
+	m_tbRoot.SetWindowText(m_rootName.GetString());
+
+
+	traverseXMLAndInsert();
+
+
+	m_isChanged=false;
+	m_lbFilename.SetWindowText(fileName.GetString());
+}
+
+void CEpXMLBuilderDlg::OnBnClickedBtnSave()
+{
+	CString fileName;
+	m_lbFilename.GetWindowText(fileName);
+	if(fileName.GetLength()<=0)
+	{
+		
+		CFileDialog saveDialog(FALSE, _T("xml"), NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, _T("XML Files (*.xml)|*.xml|All Files (*.*)|*.*||"),this);
+		int result =saveDialog.DoModal();
+		if(result==IDCANCEL || saveDialog.GetPathName().GetLength()<=0)
+			return;
+		fileName=saveDialog.GetPathName();
+		m_lbFilename.SetWindowText(fileName.GetString());
+	}
+	m_xmlFile.SaveToFile(fileName);
+	m_isChanged=false;
+
+	m_notifyWin.Show(_T("XML is saved."),POP_UP_TIME_TO_SHOW,POP_UP_TIME_TO_STAY,POP_UP_TIME_TO_HIDE);
+}
+
+void CEpXMLBuilderDlg::OnBnClickedBtnSaveAs()
+{
+	CString fileName;
+	CFileDialog saveDialog(FALSE, _T("xml"), NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,_T("XML Files (*.xml)|*.xml|All Files (*.*)|*.*||"),this);
+	int result =saveDialog.DoModal();
+	if(result==IDCANCEL || saveDialog.GetPathName().GetLength()<=0)
+		return;
+	fileName=saveDialog.GetPathName();
+	m_xmlFile.SaveToFile(fileName);
+	m_isChanged=false;
+	m_lbFilename.SetWindowText(fileName.GetString());
+	m_notifyWin.Show(_T("XML is saved."),POP_UP_TIME_TO_SHOW,POP_UP_TIME_TO_STAY,POP_UP_TIME_TO_HIDE);
+}
+
+
+void CEpXMLBuilderDlg::OnCbnEditchangeCbNode()
+{
+	m_cbNodeName.Clear();
+	CString textString;
+	m_cbNodeName.GetWindowText(textString);
+	if(textString.GetLength()>0)
+	{
+		NodeStringMap::iterator iter;
+		for(iter=m_nodeNameMap.begin();iter!=m_nodeNameMap.end();iter++)
+		{
+			if( iter->first.Find(textString.GetString())!=-1)
+			{
+				m_cbNodeName.AddString(iter->first.GetString());
+			}
+		}
+	}
+	else
+	{
+		NodeStringMap::iterator iter;
+		for(iter=m_nodeNameMap.begin();iter!=m_nodeNameMap.end();iter++)
+		{
+			m_cbNodeName.AddString(iter->first.GetString());
+		}
+	}
+	
+	m_cbNodeName.ShowDropDown(TRUE);
+}
+
+void CEpXMLBuilderDlg::OnCbnEditchangeCbValue()
+{
+	m_cbNodeValue.Clear();
+	CString nameTextString;
+	CString valueTextString;
+	m_cbNodeName.GetWindowText(nameTextString);
+	m_cbNodeValue.GetWindowText(valueTextString);
+	if(nameTextString.GetLength()>0)
+	{
+		NodeStringMap::iterator iter=m_nodeNameMap.find(nameTextString);
+		if(iter!=m_nodeNameMap.end())
+		{
+			if(valueTextString.GetLength()>0)
+			{
+				for(int trav=0;trav<iter->second.size();trav++)
+				{
+					if(iter->second.at(trav).Find(valueTextString.GetString())!=-1)
+					{
+						m_cbNodeValue.AddString(iter->second.at(trav).GetString());
+					}
+				}
+			}
+			else
+			{
+				for(int trav=0;trav<iter->second.size();trav++)
+				{
+					m_cbNodeValue.AddString(iter->second.at(trav).GetString());
+				}
+			}
+			
+		}
+		
+	}
+	
+	m_cbNodeValue.ShowDropDown(TRUE);
+}
+CString CEpXMLBuilderDlg::format(CString nodeName, CString nodeValue)
+{
+	CString treeElemString=_T("<name = ");
+	treeElemString.Append(nodeName);
+	treeElemString.AppendFormat(_T(" value = "));
+	treeElemString.Append(nodeValue);
+	treeElemString.AppendFormat(_T(" >"));
+	return treeElemString;
+
+}
+void CEpXMLBuilderDlg::OnBnClickedBtnAdd()
+{
+	if(m_selectedTreeItem==NULL)
+	{
+		MessageBox(_T("Node is not selected from the tree!\n\nPlease select a node to delete."),_T("Error"),MB_OK);
+		return;
+	}
+	CString nodeName,nodeValue;
+	m_cbNodeName.GetWindowText(nodeName);
+	m_cbNodeValue.GetWindowText(nodeValue);
+	if(nodeName.GetLength()<=0)
+	{
+		MessageBox(_T("Node Name is NULL!\n\nPlease input Node Name."),_T("Warning"),MB_OK);
+		m_cbNodeName.SetFocus();
+		m_cbNodeName.SetEditSel(0,-1);
+		return;
+	}
+	if(nodeValue.GetLength()<=0)
+	{
+		MessageBox(_T("Node Value is NULL!\n\nPlease input Node Value."),_T("Warning"),MB_OK);
+		m_cbNodeValue.SetFocus();
+		m_cbNodeValue.SetEditSel(0,-1);
+		return;
+	}
+
+	CString treeElemString=format(nodeName,nodeValue);
+	HTREEITEM insertedItem=m_treeXML.InsertItem(treeElemString.GetString(),m_selectedTreeItem,TVI_LAST);
+
+	if(m_treeXML.GetItemText(m_selectedTreeItem).Compare(m_rootName)==0)
+	{
+		XNode* insertedNode=m_xmlFile.AppendChild(nodeName.GetString(),nodeValue.GetString());
+		m_treeMap[insertedItem]=insertedNode;
+	}
+	else
+	{
+		TreeMap::iterator iter=m_treeMap.find(m_selectedTreeItem);
+		XNode* insertedNode=iter->second->AppendChild(nodeName.GetString(),nodeValue.GetString());
+		m_treeMap[insertedItem]=insertedNode;
+	}
+	m_treeXML.Expand(m_selectedTreeItem,TVE_EXPAND);
+	
+	m_isChanged=true;
+	m_cbNodeName.SetFocus();
+}
+
+void CEpXMLBuilderDlg::OnBnClickedBtnDelete()
+{
+	if(m_selectedTreeItem==NULL)
+	{
+		MessageBox(_T("Node is not selected from the tree!\n\nPlease select a node to delete."),_T("Error"),MB_OK);
+		return;
+	}
+	if(m_treeXML.GetItemText(m_selectedTreeItem).Compare(m_rootName)==0)
+	{
+		MessageBox(_T("Root node cannot be deleted!\n\nPlease select other node to delete."),_T("Error"),MB_OK);
+		return;
+	}
+	if(MessageBox(_T("Do you really want to delete the node and its sub-nodes?"),_T("Warning"),MB_YESNO)==IDNO)
+		return;
+	TreeMap::iterator iter=m_treeMap.find(m_selectedTreeItem);
+	iter->second->m_parent->RemoveChild(iter->second);
+	m_treeMap.erase(iter);
+
+	HTREEITEM prevItem=m_treeXML.GetPrevVisibleItem(m_selectedTreeItem);
+	m_treeXML.DeleteItem(m_selectedTreeItem);
+
+	
+	m_treeXML.SelectItem(prevItem);
+
+	m_isChanged=true;
+	m_selectedTreeItem=prevItem;
+
+	m_treeXML.SetFocus();
+}
+
+
+void CEpXMLBuilderDlg::OnTvnSelchangedTree1(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	LPNMTREEVIEW pNMTreeView = reinterpret_cast<LPNMTREEVIEW>(pNMHDR);
+	*pResult = 0;
+	m_selectedTreeItem = m_treeXML.GetSelectedItem();
+}
+
+void CEpXMLBuilderDlg::OnTvnKeydownTree1(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	LPNMTVKEYDOWN pTVKeyDown = reinterpret_cast<LPNMTVKEYDOWN>(pNMHDR);
+	*pResult = 0;
+	NMTVKEYDOWN * pKey = (NMTVKEYDOWN *)pNMHDR;
+
+	HTREEITEM hSel = m_treeXML.GetSelectedItem();
+	if (pKey->wVKey == VK_DELETE && hSel != NULL)
+	{
+		OnBnClickedBtnDelete();
+	}
+}
+
+BOOL CEpXMLBuilderDlg::PreTranslateMessage(MSG* pMsg)
+{
+	// ENTER key
+	if((pMsg->message == WM_KEYDOWN) && 
+		(pMsg->wParam == VK_RETURN))
+	{
+		// Enter key was hit -> do whatever you want
+		OnBnClickedBtnAdd();
+		return TRUE;
+	}
+	
+	if((pMsg->message == WM_KEYDOWN) && 
+		(pMsg->wParam == 0x53)) //S
+	{
+		if((GetKeyState(VK_SHIFT) & 0x8000)&& (GetKeyState(VK_CONTROL) & 0x8000))
+		{
+			OnBnClickedBtnSaveAs();
+			return TRUE;
+		}
+
+	}
+
+	if((pMsg->message == WM_KEYDOWN) && 
+		(pMsg->wParam == 0x53)) //S
+	{
+		if((GetKeyState(VK_CONTROL) & 0x8000))
+		{
+			OnBnClickedBtnSave();
+			return TRUE;
+		}
+
+	}
+
+	if((pMsg->message == WM_KEYDOWN) && 
+		(pMsg->wParam == 0x4C)) //L
+	{
+		if((GetKeyState(VK_CONTROL) & 0x8000))
+		{
+			OnBnClickedBtnLoad();
+			return TRUE;
+		}
+
+	}
+
+	if((pMsg->message == WM_KEYDOWN) && 
+		(pMsg->wParam == 0x4E)) //N
+	{
+		if((GetKeyState(VK_CONTROL) & 0x8000))
+		{
+			OnBnClickedBtnNew();
+			return TRUE;
+		}
+
+	}
+
+	if((pMsg->message == WM_KEYDOWN) && 
+		(pMsg->wParam == 0x43)) //C
+	{
+		if((GetKeyState(VK_CONTROL) & 0x8000))
+		{
+			OnBnClickedButton1();
+			return TRUE;
+		}
+
+	}
+
+	return CDialog::PreTranslateMessage(pMsg);
+}
+void CEpXMLBuilderDlg::OnBnClickedButton1()
+{
+	// TODO: Add your control notification handler code here
+	CString rootName;
+	m_tbRoot.GetWindowText(rootName);
+	if(rootName.GetLength()<=0)
+	{
+		MessageBox(_T("Invalid Rootname!\n\nPlease try again."),_T("Error"),MB_OK);
+		m_tbRoot.SetFocus();
+		m_tbRoot.SetSel(0,-1);
+	}
+
+	m_rootName=rootName;
+	XNode *node= &m_xmlFile;
+	node->m_name=m_rootName;
+
+	HTREEITEM rootItem=m_treeXML.GetFirstVisibleItem();
+	m_treeXML.SetItemText(rootItem,m_rootName.GetString());
+	m_isChanged=true;
+
+}
+
+
+
+void CEpXMLBuilderDlg::OnClose()
+{
+	// TODO: Add your message handler code here and/or call default
+
+	CDialog::OnClose();
+}
+
+void CEpXMLBuilderDlg::OnBnClickedCancel()
+{
+	if(!continueOnChanged())
+		return;
+	// TODO: Add your control notification handler code here
+	if(MessageBox(_T("Do you really want to exit the XML Builder?"),_T("Warning"),MB_YESNO)==IDNO)
+	{
+		return;
+	}
+	// TODO: Add your control notification handler code here
+	OnCancel();
+}
+
+void CEpXMLBuilderDlg::OnBnClickedBtnLoadPreText()
+{
+	// TODO: Add your control notification handler code here
+	CString iniFileName;
+
+	CFileDialog fileDialog(TRUE,_T("ini"),NULL,OFN_FILEMUSTEXIST,_T("INI Files (*.ini)|*.ini|All Files (*.*)|*.*||"),this );
+	fileDialog.m_pOFN->lpstrTitle=_T("Pre Text Data File");
+	fileDialog.m_pOFN->lpstrInitialDir=_T("c:");
+	int result = fileDialog.DoModal();
+	if(result==IDOK && fileDialog.GetPathName().GetLength()>0)
+	{
+		iniFileName=fileDialog.GetPathName();
+	}
+	else
+		return;
+
+
+	
+	m_nodeNameMap.clear();
+
+	iniFileName=fileDialog.GetPathName();
+	if(m_textFile.LoadFromFile(iniFileName.GetString()))
+	{
+		PreTestParser::Parse(m_textFile,m_nodeNameMap);
+	}
+}
