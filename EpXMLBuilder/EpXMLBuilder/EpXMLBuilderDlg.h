@@ -126,5 +126,17 @@ public:
 	
 	
 	CComboBox m_cbEncoding;
+	CButton m_btnChange;
+	CWnd *m_lastFocus;
 	afx_msg void OnCbnSelchangeCbEncoding();
+	
+	afx_msg void OnEnSetfocusTbRoot();
+	afx_msg void OnEnSetfocusTbRootvalue();
+	afx_msg void OnCbnSetfocusCbNode();
+	afx_msg void OnCbnSetfocusCbValue();
+	afx_msg void OnCbnSetfocusCbAttr();
+	afx_msg void OnCbnSetfocusCbAttrValue();
+	afx_msg void OnBnSetfocusButton1();
+	afx_msg void OnBnSetfocusBtnAdd();
+	afx_msg void OnBnSetfocusBtnAddAttr();
 };

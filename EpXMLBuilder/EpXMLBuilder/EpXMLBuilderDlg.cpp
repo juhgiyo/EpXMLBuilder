@@ -74,6 +74,7 @@ void CEpXMLBuilderDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_CB_ATTR_VALUE, m_cbAttrValue);
 	DDX_Control(pDX, IDC_BTN_ADD_ATTR, m_btnAddAttr);
 	DDX_Control(pDX, IDC_CB_ENCODING, m_cbEncoding);
+	DDX_Control(pDX, IDC_BUTTON1, m_btnChange);
 }
 
 BEGIN_MESSAGE_MAP(CEpXMLBuilderDlg, CDialog)
@@ -98,6 +99,15 @@ ON_BN_CLICKED(IDC_BTN_ADD_ATTR, &CEpXMLBuilderDlg::OnBnClickedBtnAddAttr)
 ON_CBN_EDITCHANGE(IDC_CB_ATTR, &CEpXMLBuilderDlg::OnCbnEditchangeCbAttr)
 ON_CBN_EDITCHANGE(IDC_CB_ATTR_VALUE, &CEpXMLBuilderDlg::OnCbnEditchangeCbAttrValue)
 ON_CBN_SELCHANGE(IDC_CB_ENCODING, &CEpXMLBuilderDlg::OnCbnSelchangeCbEncoding)
+ON_EN_SETFOCUS(IDC_TB_ROOT, &CEpXMLBuilderDlg::OnEnSetfocusTbRoot)
+ON_EN_SETFOCUS(IDC_TB_ROOTVALUE, &CEpXMLBuilderDlg::OnEnSetfocusTbRootvalue)
+ON_CBN_SETFOCUS(IDC_CB_NODE, &CEpXMLBuilderDlg::OnCbnSetfocusCbNode)
+ON_CBN_SETFOCUS(IDC_CB_VALUE, &CEpXMLBuilderDlg::OnCbnSetfocusCbValue)
+ON_CBN_SETFOCUS(IDC_CB_ATTR, &CEpXMLBuilderDlg::OnCbnSetfocusCbAttr)
+ON_CBN_SETFOCUS(IDC_CB_ATTR_VALUE, &CEpXMLBuilderDlg::OnCbnSetfocusCbAttrValue)
+ON_BN_SETFOCUS(IDC_BUTTON1, &CEpXMLBuilderDlg::OnBnSetfocusButton1)
+ON_BN_SETFOCUS(IDC_BTN_ADD, &CEpXMLBuilderDlg::OnBnSetfocusBtnAdd)
+ON_BN_SETFOCUS(IDC_BTN_ADD_ATTR, &CEpXMLBuilderDlg::OnBnSetfocusBtnAddAttr)
 END_MESSAGE_MAP()
 
 
@@ -868,19 +878,45 @@ BOOL CEpXMLBuilderDlg::PreTranslateMessage(MSG* pMsg)
 	if((pMsg->message == WM_KEYDOWN) && 
 		(pMsg->wParam == VK_RETURN))
 	{
-		// Enter key was hit -> do whatever you want
-		if((GetKeyState(VK_CONTROL) & 0x8000))
+		if(m_lastFocus)
 		{
-			OnBnClickedBtnAddAttr();
-			return TRUE;
-		}
-		else
-		{
-			OnBnClickedBtnAdd();
-			return TRUE;
+			if(m_lastFocus==&m_tbRoot||m_lastFocus==&m_tbRootValue||m_lastFocus==&m_btnChange)
+			{
+				OnBnClickedButton1();
+				return TRUE;
+			}
+			else if(m_lastFocus==&m_cbAttrName||m_lastFocus==&m_cbAttrValue||m_lastFocus==&m_btnAddAttr)
+			{
+				OnBnClickedBtnAddAttr();
+				return TRUE;
+			}
+			else if(m_lastFocus==&m_cbNodeName||m_lastFocus==&m_cbNodeValue||m_lastFocus==&m_btnAdd)
+			{
+				OnBnClickedBtnAdd();
+				return TRUE;
+			}
 		}
 		
 	}
+// 	if((pMsg->message == WM_KEYDOWN) && 
+// 		(pMsg->wParam == VK_RETURN))
+// 	{
+// 		if((GetKeyState(VK_SHIFT) & 0x8000)&& (GetKeyState(VK_CONTROL) & 0x8000))
+// 		{
+// 			OnBnClickedButton1();
+// 			return TRUE;
+// 		}
+// 		else if(GetKeyState(VK_CONTROL) & 0x8000)
+// 		{
+// 			OnBnClickedBtnAddAttr();
+// 			return TRUE;
+// 		}
+// 		else
+// 		{
+// 			OnBnClickedBtnAdd();
+// 			return TRUE;
+// 		}
+// 	}
 	
 	if((pMsg->message == WM_KEYDOWN) && 
 		(pMsg->wParam == 0x53)) //S
@@ -921,17 +957,6 @@ BOOL CEpXMLBuilderDlg::PreTranslateMessage(MSG* pMsg)
 		if((GetKeyState(VK_CONTROL) & 0x8000))
 		{
 			OnBnClickedBtnNew();
-			return TRUE;
-		}
-
-	}
-
-	if((pMsg->message == WM_KEYDOWN) && 
-		(pMsg->wParam == 0x43)) //C
-	{
-		if((GetKeyState(VK_CONTROL) & 0x8000))
-		{
-			OnBnClickedButton1();
 			return TRUE;
 		}
 
@@ -1002,4 +1027,58 @@ void CEpXMLBuilderDlg::OnCbnSelchangeCbEncoding()
 	{
 		// Set XML as UTF-8
 	}
+}
+
+void CEpXMLBuilderDlg::OnEnSetfocusTbRoot()
+{
+	// TODO: Add your control notification handler code here
+	m_lastFocus=&m_tbRoot;
+}
+
+void CEpXMLBuilderDlg::OnEnSetfocusTbRootvalue()
+{
+	// TODO: Add your control notification handler code here
+	m_lastFocus=&m_tbRootValue;
+}
+
+void CEpXMLBuilderDlg::OnCbnSetfocusCbNode()
+{
+	// TODO: Add your control notification handler code here
+	m_lastFocus=&m_cbNodeName;
+}
+
+void CEpXMLBuilderDlg::OnCbnSetfocusCbValue()
+{
+	// TODO: Add your control notification handler code here
+	m_lastFocus=&m_cbNodeValue;
+}
+
+void CEpXMLBuilderDlg::OnCbnSetfocusCbAttr()
+{
+	// TODO: Add your control notification handler code here
+	m_lastFocus=&m_cbAttrName;
+}
+
+void CEpXMLBuilderDlg::OnCbnSetfocusCbAttrValue()
+{
+	// TODO: Add your control notification handler code here
+	m_lastFocus=&m_cbAttrValue;
+}
+
+void CEpXMLBuilderDlg::OnBnSetfocusButton1()
+{
+	// TODO: Add your control notification handler code here
+	m_lastFocus=&m_btnChange;
+}
+
+void CEpXMLBuilderDlg::OnBnSetfocusBtnAdd()
+{
+	// TODO: Add your control notification handler code here
+	m_lastFocus=&m_btnAdd;
+}
+
+void CEpXMLBuilderDlg::OnBnSetfocusBtnAddAttr()
+{
+	// TODO: Add your control notification handler code here
+	m_lastFocus=&m_btnAddAttr;
 }
