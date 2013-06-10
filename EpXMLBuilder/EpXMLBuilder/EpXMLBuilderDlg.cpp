@@ -69,6 +69,10 @@ void CEpXMLBuilderDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_TREE1, m_treeXML);
 	DDX_Control(pDX, IDC_TB_ROOT, m_tbRoot);
 	DDX_Control(pDX, IDC_BTN_LOAD_PRE_TEXT, m_btnLoadTextDB);
+	DDX_Control(pDX, IDC_TB_ROOTVALUE, m_tbRootValue);
+	DDX_Control(pDX, IDC_CB_ATTR, m_cbAttrName);
+	DDX_Control(pDX, IDC_CB_ATTR_VALUE, m_cbAttrValue);
+	DDX_Control(pDX, IDC_BTN_ADD_ATTR, m_btnAddAttr);
 }
 
 BEGIN_MESSAGE_MAP(CEpXMLBuilderDlg, CDialog)
@@ -89,6 +93,7 @@ ON_BN_CLICKED(IDC_BUTTON1, &CEpXMLBuilderDlg::OnBnClickedButton1)
 ON_WM_CLOSE()
 ON_BN_CLICKED(IDCANCEL, &CEpXMLBuilderDlg::OnBnClickedCancel)
 ON_BN_CLICKED(IDC_BTN_LOAD_PRE_TEXT, &CEpXMLBuilderDlg::OnBnClickedBtnLoadPreText)
+ON_BN_CLICKED(IDC_BTN_ADD_ATTR, &CEpXMLBuilderDlg::OnBnClickedBtnAddAttr)
 END_MESSAGE_MAP()
 
 
@@ -143,6 +148,8 @@ BOOL CEpXMLBuilderDlg::OnInitDialog()
 	m_resizer.SetAnchor(IDC_ST_ROOT_GROUP,ANCHOR_RIGHT|ANCHOR_TOP);
 	m_resizer.SetAnchor(IDC_ST_ROOTNAME,ANCHOR_RIGHT|ANCHOR_TOP);
 	m_resizer.SetAnchor(IDC_TB_ROOT,ANCHOR_RIGHT|ANCHOR_TOP);
+	m_resizer.SetAnchor(IDC_ST_ROOTVALUE,ANCHOR_RIGHT|ANCHOR_TOP);
+	m_resizer.SetAnchor(IDC_TB_ROOTVALUE,ANCHOR_RIGHT|ANCHOR_TOP);
 	m_resizer.SetAnchor(IDC_BUTTON1,ANCHOR_RIGHT|ANCHOR_TOP);
 
 
@@ -152,6 +159,13 @@ BOOL CEpXMLBuilderDlg::OnInitDialog()
 	m_resizer.SetAnchor(IDC_BTN_ADD,ANCHOR_RIGHT|ANCHOR_TOP);
 	m_resizer.SetAnchor(IDC_ST_NODE_NAME,ANCHOR_RIGHT|ANCHOR_TOP);
 	m_resizer.SetAnchor(IDC_ST_NODE_VALUE,ANCHOR_RIGHT|ANCHOR_TOP);
+
+	m_resizer.SetAnchor(IDC_ST_ATTR_GROUP,ANCHOR_RIGHT|ANCHOR_TOP);
+	m_resizer.SetAnchor(IDC_CB_ATTR,ANCHOR_RIGHT|ANCHOR_TOP);
+	m_resizer.SetAnchor(IDC_CB_ATTR_VALUE,ANCHOR_RIGHT|ANCHOR_TOP);
+	m_resizer.SetAnchor(IDC_BTN_ADD_ATTR,ANCHOR_RIGHT|ANCHOR_TOP);
+	m_resizer.SetAnchor(IDC_ST_ATTR_NAME,ANCHOR_RIGHT|ANCHOR_TOP);
+	m_resizer.SetAnchor(IDC_ST_ATTR_VALUE,ANCHOR_RIGHT|ANCHOR_TOP);
 
 	m_resizer.SetAnchor(IDCANCEL,ANCHOR_RIGHT|ANCHOR_BOTTOM);
 
@@ -179,7 +193,7 @@ BOOL CEpXMLBuilderDlg::OnInitDialog()
 
 	if(m_textFile.LoadFromFile(iniFileName.GetString()))
 	{
-		PreTestParser::Parse(m_textFile,m_nodeNameMap);
+		PreTestParser::Parse(m_textFile,m_nodeNameMap,m_attrNameMap);
 	}
 
 	// Rest of Settings
@@ -192,10 +206,11 @@ BOOL CEpXMLBuilderDlg::OnInitDialog()
 	m_cbNodeName.SetFocus();
 
 	m_tbRoot.SetWindowText(_T("Root"));
-	m_rootName=_T("Root");
+	m_rootName=nodeFormat(_T("Root"),_T(""));
 	m_selectedTreeItem=m_treeXML.InsertItem(m_rootName.GetString());
 	XNode *node= &m_xmlFile;
-	node->m_name=m_rootName;
+	node->m_name=_T("Root");
+	node->m_value=_T("");
 	m_treeXML.SelectItem(m_selectedTreeItem);
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
@@ -284,21 +299,33 @@ void CEpXMLBuilderDlg::OnBnClickedBtnNew()
 		return;
 	m_xmlFile.Clear();
 	m_treeXML.DeleteAllItems();
-	m_rootName=_T("Root");
+	m_rootName=nodeFormat(_T("Root"),_T(""));
 	m_tbRoot.SetWindowText(_T("Root"));
+	m_tbRootValue.SetWindowText(_T(""));
+
 	m_selectedTreeItem=m_treeXML.InsertItem(m_rootName.GetString());
 	m_treeXML.SelectItem(m_selectedTreeItem);
 	XNode *node= &m_xmlFile;
-	node->m_name=m_rootName;
+	node->m_name=_T("Root");
+	node->m_value=_T("");
 	m_isChanged=false;
 	m_lbFilename.SetWindowText(_T(""));
 }
 
 HTREEITEM CEpXMLBuilderDlg::insertNode(CString nodeName, CString nodeValue,HTREEITEM insertUnder,XNode *node)
 {
-	CString treeElemString=format(nodeName,nodeValue);
+	CString treeElemString=nodeFormat(nodeName,nodeValue);
 	HTREEITEM insertedItem=m_treeXML.InsertItem(treeElemString.GetString(),insertUnder,TVI_LAST);
-	m_treeMap[insertedItem]=node;
+	m_treeNodeMap[insertedItem]=node;
+
+	for (int attrTrav=0;attrTrav<node->m_attrs.size();attrTrav++)
+	{
+		CString treeElemString=attrFormat(node->m_attrs.at(attrTrav)->m_name,node->m_attrs.at(attrTrav)->m_value);
+		HTREEITEM insertedAttrItem=m_treeXML.InsertItem(treeElemString.GetString(),insertedItem,TVI_LAST);
+		m_treeAttrMap[insertedAttrItem]=node->m_attrs.at(attrTrav);
+	}
+
+
 	m_treeXML.Expand(insertUnder,TVE_EXPAND);
 	return insertedItem;
 }
@@ -367,11 +394,18 @@ void CEpXMLBuilderDlg::OnBnClickedBtnLoad()
 	m_xmlFile.LoadFromFile(fileName);
 
 	XNode * node=&m_xmlFile;
-	m_rootName=node->m_name;
+	m_rootName=nodeFormat(node->m_name,node->m_value);
 	m_selectedTreeItem=m_treeXML.InsertItem(m_rootName);
 	m_treeXML.SelectItem(m_selectedTreeItem);
-	m_tbRoot.SetWindowText(m_rootName.GetString());
+	m_tbRoot.SetWindowText(node->m_name.GetString());
+	m_tbRootValue.SetWindowText(node->m_value.GetString());
 
+	for (int attrTrav=0;attrTrav<node->m_attrs.size();attrTrav++)
+	{
+		CString treeElemString=attrFormat(node->m_attrs.at(attrTrav)->m_name,node->m_attrs.at(attrTrav)->m_value);
+		HTREEITEM insertedItem=m_treeXML.InsertItem(treeElemString.GetString(),m_selectedTreeItem,TVI_LAST);
+		m_treeAttrMap[insertedItem]=node->m_attrs.at(attrTrav);
+	}
 
 	traverseXMLAndInsert();
 
@@ -479,21 +513,37 @@ void CEpXMLBuilderDlg::OnCbnEditchangeCbValue()
 	
 	m_cbNodeValue.ShowDropDown(TRUE);
 }
-CString CEpXMLBuilderDlg::format(CString nodeName, CString nodeValue)
+CString CEpXMLBuilderDlg::nodeFormat(CString nodeName, CString nodeValue)
 {
 	CString treeElemString=_T("<name = ");
 	treeElemString.Append(nodeName);
-	treeElemString.AppendFormat(_T(" value = "));
-	treeElemString.Append(nodeValue);
+	if(nodeValue.GetLength()>0)
+	{
+		treeElemString.AppendFormat(_T(" value = "));
+		treeElemString.Append(nodeValue);
+	}
 	treeElemString.AppendFormat(_T(" >"));
 	return treeElemString;
 
+}
+
+CString CEpXMLBuilderDlg::attrFormat(CString attrName, CString attrValue)
+{
+	CString treeElemString=_T("<attrName = ");
+	treeElemString.Append(attrName);
+	if(attrValue.GetLength()>0)
+	{
+		treeElemString.AppendFormat(_T(" value = "));
+		treeElemString.Append(attrValue);
+	}
+	treeElemString.AppendFormat(_T(" >"));
+	return treeElemString;
 }
 void CEpXMLBuilderDlg::OnBnClickedBtnAdd()
 {
 	if(m_selectedTreeItem==NULL)
 	{
-		MessageBox(_T("Node is not selected from the tree!\n\nPlease select a node to delete."),_T("Error"),MB_OK);
+		MessageBox(_T("Node is not selected from the tree!\n\nPlease select a node to add the node under."),_T("Error"),MB_OK);
 		return;
 	}
 	CString nodeName,nodeValue;
@@ -506,27 +556,30 @@ void CEpXMLBuilderDlg::OnBnClickedBtnAdd()
 		m_cbNodeName.SetEditSel(0,-1);
 		return;
 	}
-	if(nodeValue.GetLength()<=0)
+
+	
+	CString treeElemString=nodeFormat(nodeName,nodeValue);
+
+	TreeNodeMap::iterator nodeIter=m_treeNodeMap.find(m_selectedTreeItem);
+	if(nodeIter==m_treeNodeMap.end() && m_treeXML.GetItemText(m_selectedTreeItem).Compare(m_rootName)!=0)
 	{
-		MessageBox(_T("Node Value is NULL!\n\nPlease input Node Value."),_T("Warning"),MB_OK);
-		m_cbNodeValue.SetFocus();
-		m_cbNodeValue.SetEditSel(0,-1);
+		MessageBox(_T("Cannot attach the node/attribute to an Attibute element. Please select the node to insert under."),_T("Error"),MB_OK);
 		return;
 	}
 
-	CString treeElemString=format(nodeName,nodeValue);
+
 	HTREEITEM insertedItem=m_treeXML.InsertItem(treeElemString.GetString(),m_selectedTreeItem,TVI_LAST);
 
 	if(m_treeXML.GetItemText(m_selectedTreeItem).Compare(m_rootName)==0)
 	{
 		XNode* insertedNode=m_xmlFile.AppendChild(nodeName.GetString(),nodeValue.GetString());
-		m_treeMap[insertedItem]=insertedNode;
+		m_treeNodeMap[insertedItem]=insertedNode;
 	}
 	else
 	{
-		TreeMap::iterator iter=m_treeMap.find(m_selectedTreeItem);
+		TreeNodeMap::iterator iter=m_treeNodeMap.find(m_selectedTreeItem);
 		XNode* insertedNode=iter->second->AppendChild(nodeName.GetString(),nodeValue.GetString());
-		m_treeMap[insertedItem]=insertedNode;
+		m_treeNodeMap[insertedItem]=insertedNode;
 	}
 	m_treeXML.Expand(m_selectedTreeItem,TVE_EXPAND);
 	
@@ -538,7 +591,7 @@ void CEpXMLBuilderDlg::OnBnClickedBtnDelete()
 {
 	if(m_selectedTreeItem==NULL)
 	{
-		MessageBox(_T("Node is not selected from the tree!\n\nPlease select a node to delete."),_T("Error"),MB_OK);
+		MessageBox(_T("Node/Attribute is not selected from the tree!\n\nPlease select a node or an attribute to delete."),_T("Error"),MB_OK);
 		return;
 	}
 	if(m_treeXML.GetItemText(m_selectedTreeItem).Compare(m_rootName)==0)
@@ -546,11 +599,28 @@ void CEpXMLBuilderDlg::OnBnClickedBtnDelete()
 		MessageBox(_T("Root node cannot be deleted!\n\nPlease select other node to delete."),_T("Error"),MB_OK);
 		return;
 	}
-	if(MessageBox(_T("Do you really want to delete the node and its sub-nodes?"),_T("Warning"),MB_YESNO)==IDNO)
+	if(MessageBox(_T("Do you really want to delete the node/attribute and its sub-nodes?"),_T("Warning"),MB_YESNO)==IDNO)
 		return;
-	TreeMap::iterator iter=m_treeMap.find(m_selectedTreeItem);
-	iter->second->m_parent->RemoveChild(iter->second);
-	m_treeMap.erase(iter);
+	TreeNodeMap::iterator iter=m_treeNodeMap.find(m_selectedTreeItem);
+	if(iter!=m_treeNodeMap.end())
+	{
+		iter->second->m_parent->RemoveChild(iter->second);
+		m_treeNodeMap.erase(iter);
+	}
+	else
+	{
+		TreeAttrMap::iterator attrIter=m_treeAttrMap.find(m_selectedTreeItem);
+		if(attrIter!=m_treeAttrMap.end())
+		{
+			attrIter->second->m_parent->RemoveAttr(attrIter->second);
+			m_treeAttrMap.erase(attrIter);
+		}
+		else
+		{
+			EP_ASSERT(0);
+		}
+	}
+	
 
 	HTREEITEM prevItem=m_treeXML.GetPrevVisibleItem(m_selectedTreeItem);
 	m_treeXML.DeleteItem(m_selectedTreeItem);
@@ -592,8 +662,17 @@ BOOL CEpXMLBuilderDlg::PreTranslateMessage(MSG* pMsg)
 		(pMsg->wParam == VK_RETURN))
 	{
 		// Enter key was hit -> do whatever you want
-		OnBnClickedBtnAdd();
-		return TRUE;
+		if((GetKeyState(VK_CONTROL) & 0x8000))
+		{
+			OnBnClickedBtnAddAttr();
+			return TRUE;
+		}
+		else
+		{
+			OnBnClickedBtnAdd();
+			return TRUE;
+		}
+		
 	}
 	
 	if((pMsg->message == WM_KEYDOWN) && 
@@ -657,7 +736,9 @@ void CEpXMLBuilderDlg::OnBnClickedButton1()
 {
 	// TODO: Add your control notification handler code here
 	CString rootName;
+	CString rootValue;
 	m_tbRoot.GetWindowText(rootName);
+	m_tbRootValue.GetWindowText(rootValue);
 	if(rootName.GetLength()<=0)
 	{
 		MessageBox(_T("Invalid Rootname!\n\nPlease try again."),_T("Error"),MB_OK);
@@ -665,9 +746,10 @@ void CEpXMLBuilderDlg::OnBnClickedButton1()
 		m_tbRoot.SetSel(0,-1);
 	}
 
-	m_rootName=rootName;
+	m_rootName=nodeFormat(rootName,rootValue);
 	XNode *node= &m_xmlFile;
-	node->m_name=m_rootName;
+	node->m_name=rootName;
+	node->m_value=rootValue;
 
 	HTREEITEM rootItem=m_treeXML.GetFirstVisibleItem();
 	m_treeXML.SetItemText(rootItem,m_rootName.GetString());
@@ -716,10 +798,58 @@ void CEpXMLBuilderDlg::OnBnClickedBtnLoadPreText()
 
 	
 	m_nodeNameMap.clear();
+	m_attrNameMap.clear();
 
 	iniFileName=fileDialog.GetPathName();
 	if(m_textFile.LoadFromFile(iniFileName.GetString()))
 	{
-		PreTestParser::Parse(m_textFile,m_nodeNameMap);
+		PreTestParser::Parse(m_textFile,m_nodeNameMap, m_attrNameMap);
 	}
+}
+
+void CEpXMLBuilderDlg::OnBnClickedBtnAddAttr()
+{
+	// TODO: Add your control notification handler code here
+
+	if(m_selectedTreeItem==NULL)
+	{
+		MessageBox(_T("Node is not selected from the tree!\n\nPlease select a node to add the attribute under."),_T("Error"),MB_OK);
+		return;
+	}
+	CString attrName,attrValue;
+	m_cbAttrName.GetWindowText(attrName);
+	m_cbAttrValue.GetWindowText(attrValue);
+	if(attrName.GetLength()<=0)
+	{
+		MessageBox(_T("Attribute Name is NULL!\n\nPlease input Attribute Name."),_T("Warning"),MB_OK);
+		m_cbAttrName.SetFocus();
+		m_cbAttrName.SetEditSel(0,-1);
+		return;
+	}
+
+	
+	TreeNodeMap::iterator nodeIter=m_treeNodeMap.find(m_selectedTreeItem);
+	if(nodeIter==m_treeNodeMap.end() && m_treeXML.GetItemText(m_selectedTreeItem).Compare(m_rootName)!=0)
+	{
+		MessageBox(_T("Cannot attach the node/attribute to an Attibute element. Please select the node to insert under."),_T("Error"),MB_OK);
+		return;
+	}
+
+	CString treeElemString=attrFormat(attrName,attrValue);
+	HTREEITEM insertedItem=m_treeXML.InsertItem(treeElemString.GetString(),m_selectedTreeItem,TVI_LAST);
+
+	if(m_treeXML.GetItemText(m_selectedTreeItem).Compare(m_rootName)==0)
+	{
+		XAttr* insertedAttr=m_xmlFile.AppendAttr(attrName.GetString(),attrValue.GetString());
+		m_treeAttrMap[insertedItem]=insertedAttr;
+	}
+	else
+	{
+		XAttr* insertedAttr=nodeIter->second->AppendAttr(attrName.GetString(),attrValue.GetString());
+		m_treeAttrMap[insertedItem]=insertedAttr;
+	}
+	m_treeXML.Expand(m_selectedTreeItem,TVE_EXPAND);
+
+	m_isChanged=true;
+	m_cbNodeName.SetFocus();
 }

@@ -11,6 +11,8 @@
 #define IDC_TREE1                       1000
 #define IDC_BTN_ADD                     1001
 #define IDC_BTN_DELETE                  1002
+#define IDC_BTN_ADD2                    1003
+#define IDC_BTN_ADD_ATTR                1003
 #define IDC_CB_NODE                     1004
 #define IDC_CB_VALUE                    1005
 #define IDC_BTN_LOAD                    1006
@@ -25,8 +27,15 @@
 #define IDC_ST_NODE_GROUP               1015
 #define IDC_ST_NODE_NAME                1016
 #define IDC_ST_NODE_VALUE               1017
+#define IDC_ST_ROOTVALUE                1018
 #define IDC_BUTTON2                     1019
 #define IDC_BTN_LOAD_PRE_TEXT           1019
+#define IDC_TB_ROOTVALUE                1020
+#define IDC_CB_ATTR                     1021
+#define IDC_CB_ATTR_VALUE               1022
+#define IDC_ST_ATTR_NAME                1023
+#define IDC_ST_ATTR_VALUE               1024
+#define IDC_ST_ATTR_GROUP               1025
 
 // Next default values for new objects
 // 

@@ -93,15 +93,21 @@ public:
 
 	bool continueOnChanged();
 	HTREEITEM insertNode(CString nodeName, CString nodeValue,HTREEITEM insertUnder,XNode *node);
-	CString format(CString nodeName, CString nodeValue);
+	CString nodeFormat(CString nodeName, CString nodeValue);
+	CString attrFormat(CString nodeName, CString nodeValue);
 	void traverseXMLAndInsert();
 	
 	bool m_isChanged;
 
-	typedef map<HTREEITEM,XNode*> TreeMap;
-	TreeMap m_treeMap;
+	typedef map<HTREEITEM,XNode*> TreeNodeMap;
+	TreeNodeMap m_treeNodeMap;
+
+	typedef map<HTREEITEM,XAttr*> TreeAttrMap;
+	TreeAttrMap m_treeAttrMap;
+
 	
 	NodeStringMap m_nodeNameMap;
+	NodeStringMap m_attrNameMap;
 	HTREEITEM m_selectedTreeItem;
 
 	CString m_rootName;
@@ -111,4 +117,9 @@ public:
 	
 	
 	afx_msg void OnBnClickedBtnLoadPreText();
+	CEdit m_tbRootValue;
+	afx_msg void OnBnClickedBtnAddAttr();
+	CComboBox m_cbAttrName;
+	CComboBox m_cbAttrValue;
+	CButton m_btnAddAttr;
 };

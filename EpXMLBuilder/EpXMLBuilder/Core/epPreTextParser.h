@@ -18,6 +18,6 @@ public:
 typedef map<CString,vector<CString>,CStringComparer > NodeStringMap;
 class PreTestParser{
 public:
-	static bool Parse(TextFile &file,NodeStringMap &map);
+	static bool Parse(TextFile &file,NodeStringMap &map,NodeStringMap &attrMap);
 };
 #endif //__EP_PRE_TEXT_PARSER_H__
