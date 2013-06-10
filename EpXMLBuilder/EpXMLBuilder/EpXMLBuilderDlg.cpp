@@ -188,7 +188,7 @@ BOOL CEpXMLBuilderDlg::OnInitDialog()
 
 
 	// Load Pre Text Database
-	m_textFile=TextFile(FILE_ENCODING_TYPE_UTF16LE);
+	m_textFile=TextFile(FILE_ENCODING_TYPE_UTF8);
 
 	CString iniFileName=FolderHelper::GetModuleFileName().c_str();
 	iniFileName.Replace(_T(".exe"),_T(".ini"));
@@ -453,15 +453,25 @@ void CEpXMLBuilderDlg::OnBnClickedBtnSaveAs()
 
 void CEpXMLBuilderDlg::OnCbnEditchangeCbNode()
 {
-	m_cbNodeName.Clear();
+	int cbBoxCnt=m_cbNodeName.GetCount();
+	for(int cbTrav=cbBoxCnt-1;cbTrav>=0;cbTrav--)
+	{
+		m_cbNodeName.DeleteString(cbTrav);
+	}
 	CString textString;
 	m_cbNodeName.GetWindowText(textString);
+	m_cbNodeName.AddString(textString);
 	if(textString.GetLength()>0)
 	{
+		CString lowerTextString=textString;
+		lowerTextString=lowerTextString.MakeLower();
 		NodeStringMap::iterator iter;
 		for(iter=m_nodeNameMap.begin();iter!=m_nodeNameMap.end();iter++)
 		{
-			if( iter->first.Find(textString.GetString())!=-1)
+			CString lowerIterString=*const_cast<CString*>(&(iter->first));
+			lowerIterString=lowerIterString.MakeLower();
+			
+			if( lowerIterString.Find(lowerTextString.GetString())!=-1)
 			{
 				m_cbNodeName.AddString(iter->first.GetString());
 			}
@@ -475,17 +485,27 @@ void CEpXMLBuilderDlg::OnCbnEditchangeCbNode()
 			m_cbNodeName.AddString(iter->first.GetString());
 		}
 	}
-	
-	m_cbNodeName.ShowDropDown(TRUE);
+	if(m_cbNodeName.GetCount())
+		m_cbNodeName.ShowDropDown(TRUE);
+	else
+		m_cbNodeName.ShowDropDown(FALSE);
+	m_cbNodeName.SetEditSel(-1,textString.GetLength());
 }
 
 void CEpXMLBuilderDlg::OnCbnEditchangeCbValue()
 {
-	m_cbNodeValue.Clear();
+	int cbBoxCnt=m_cbNodeValue.GetCount();
+	for(int cbTrav=cbBoxCnt-1;cbTrav>=0;cbTrav--)
+	{
+		m_cbNodeValue.DeleteString(cbTrav);
+	}
 	CString nameTextString;
 	CString valueTextString;
 	m_cbNodeName.GetWindowText(nameTextString);
 	m_cbNodeValue.GetWindowText(valueTextString);
+	m_cbNodeValue.AddString(valueTextString);
+	CString lowerValueTextString=valueTextString;
+	lowerValueTextString=lowerValueTextString.MakeLower();
 	if(nameTextString.GetLength()>0)
 	{
 		NodeStringMap::iterator iter=m_nodeNameMap.find(nameTextString);
@@ -495,7 +515,9 @@ void CEpXMLBuilderDlg::OnCbnEditchangeCbValue()
 			{
 				for(int trav=0;trav<iter->second.size();trav++)
 				{
-					if(iter->second.at(trav).Find(valueTextString.GetString())!=-1)
+					CString lowerIterString=*const_cast<CString*>(&(iter->second.at(trav)));
+					lowerIterString=lowerIterString.MakeLower();
+					if(lowerIterString.Find(lowerValueTextString.GetString())!=-1)
 					{
 						m_cbNodeValue.AddString(iter->second.at(trav).GetString());
 					}
@@ -512,8 +534,11 @@ void CEpXMLBuilderDlg::OnCbnEditchangeCbValue()
 		}
 		
 	}
-	
-	m_cbNodeValue.ShowDropDown(TRUE);
+	if(m_cbNodeValue.GetCount())
+		m_cbNodeValue.ShowDropDown(TRUE);
+	else
+		m_cbNodeValue.ShowDropDown(FALSE);
+	m_cbNodeValue.SetEditSel(-1,valueTextString.GetLength());
 }
 
 
@@ -522,15 +547,24 @@ void CEpXMLBuilderDlg::OnCbnEditchangeCbAttr()
 {
 	// TODO: Add your control notification handler code here
 
-	m_cbAttrName.Clear();
+	int cbBoxCnt=m_cbAttrName.GetCount();
+	for(int cbTrav=cbBoxCnt-1;cbTrav>=0;cbTrav--)
+	{
+		m_cbAttrName.DeleteString(cbTrav);
+	}
 	CString textString;
 	m_cbAttrName.GetWindowText(textString);
+	m_cbAttrName.AddString(textString);
 	if(textString.GetLength()>0)
 	{
+		CString lowerTextString=textString;
+		lowerTextString=lowerTextString.MakeLower();
 		NodeStringMap::iterator iter;
 		for(iter=m_attrNameMap.begin();iter!=m_attrNameMap.end();iter++)
 		{
-			if( iter->first.Find(textString.GetString())!=-1)
+			CString lowerIterString=*const_cast<CString*>(&(iter->first));
+			lowerIterString=lowerIterString.MakeLower();
+			if( lowerIterString.Find(lowerTextString.GetString())!=-1)
 			{
 				m_cbAttrName.AddString(iter->first.GetString());
 			}
@@ -544,19 +578,30 @@ void CEpXMLBuilderDlg::OnCbnEditchangeCbAttr()
 			m_cbAttrName.AddString(iter->first.GetString());
 		}
 	}
-
-	m_cbAttrName.ShowDropDown(TRUE);
+	if(m_cbAttrName.GetCount())
+		m_cbAttrName.ShowDropDown(TRUE);
+	else
+		m_cbAttrName.ShowDropDown(FALSE);
+	m_cbAttrName.SetEditSel(-1,textString.GetLength());
 }
 
 void CEpXMLBuilderDlg::OnCbnEditchangeCbAttrValue()
 {
 	// TODO: Add your control notification handler code here
 
-	m_cbAttrValue.Clear();
+	int cbBoxCnt=m_cbAttrValue.GetCount();
+	for(int cbTrav=cbBoxCnt-1;cbTrav>=0;cbTrav--)
+	{
+		m_cbAttrValue.DeleteString(cbTrav);
+	}
+
 	CString nameTextString;
 	CString valueTextString;
 	m_cbAttrName.GetWindowText(nameTextString);
 	m_cbAttrValue.GetWindowText(valueTextString);
+	m_cbAttrValue.AddString(valueTextString);
+	CString lowerValueTextString=valueTextString;
+	lowerValueTextString=lowerValueTextString.MakeLower();
 	if(nameTextString.GetLength()>0)
 	{
 		NodeStringMap::iterator iter=m_attrNameMap.find(nameTextString);
@@ -566,7 +611,9 @@ void CEpXMLBuilderDlg::OnCbnEditchangeCbAttrValue()
 			{
 				for(int trav=0;trav<iter->second.size();trav++)
 				{
-					if(iter->second.at(trav).Find(valueTextString.GetString())!=-1)
+					CString lowerIterString=*const_cast<CString*>(&(iter->second.at(trav)));
+					lowerIterString=lowerIterString.MakeLower();
+					if(lowerIterString.Find(lowerValueTextString.GetString())!=-1)
 					{
 						m_cbAttrValue.AddString(iter->second.at(trav).GetString());
 					}
@@ -583,8 +630,11 @@ void CEpXMLBuilderDlg::OnCbnEditchangeCbAttrValue()
 		}
 
 	}
-
-	m_cbAttrValue.ShowDropDown(TRUE);
+	if(m_cbAttrValue.GetCount())
+		m_cbAttrValue.ShowDropDown(TRUE);
+	else
+		m_cbAttrValue.ShowDropDown(FALSE);
+	m_cbAttrValue.SetEditSel(-1,valueTextString.GetLength());
 }
 
 CString CEpXMLBuilderDlg::nodeFormat(CString nodeName, CString nodeValue)

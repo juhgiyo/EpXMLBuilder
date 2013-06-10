@@ -5,13 +5,12 @@
 #include "epl.h"
 using namespace epl;
 
-using namespace std;
 struct CStringComparer
 {
 public:
 	bool operator()(const CString x, const CString y)
 	{
-		return x.Compare(y)==0;
+		return x.Compare(y)<0;
 	}
 };
 
