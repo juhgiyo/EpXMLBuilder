@@ -74,6 +74,10 @@ public:
 	CTreeCtrl m_treeXML;
 	CEdit m_tbRoot;
 	CButton m_btnLoadTextDB;
+	CEdit m_tbRootValue;
+	CComboBox m_cbAttrName;
+	CComboBox m_cbAttrValue;
+	CButton m_btnAddAttr;
 
 	CTaskbarNotifier m_notifyWin;
 	
@@ -90,6 +94,10 @@ public:
 	afx_msg void OnBnClickedButton1();
 	afx_msg void OnClose();
 	afx_msg void OnBnClickedCancel();
+	afx_msg void OnBnClickedBtnLoadPreText();
+	afx_msg void OnBnClickedBtnAddAttr();
+	afx_msg void OnCbnEditchangeCbAttr();
+	afx_msg void OnCbnEditchangeCbAttrValue();
 
 	bool continueOnChanged();
 	HTREEITEM insertNode(CString nodeName, CString nodeValue,HTREEITEM insertUnder,XNode *node);
@@ -116,12 +124,5 @@ public:
 	CWndResizer m_resizer;
 	
 	
-	afx_msg void OnBnClickedBtnLoadPreText();
-	CEdit m_tbRootValue;
-	afx_msg void OnBnClickedBtnAddAttr();
-	CComboBox m_cbAttrName;
-	CComboBox m_cbAttrValue;
-	CButton m_btnAddAttr;
-	afx_msg void OnCbnEditchangeCbAttr();
-	afx_msg void OnCbnEditchangeCbAttrValue();
+	
 };
