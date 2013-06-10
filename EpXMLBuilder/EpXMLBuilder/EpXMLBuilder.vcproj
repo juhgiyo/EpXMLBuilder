@@ -264,6 +264,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\LICENSE"
+				>
+			</File>
+			<File
 				RelativePath=".\res\skinnotify.bmp"
 				>
 			</File>
