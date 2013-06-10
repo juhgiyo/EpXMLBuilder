@@ -94,6 +94,8 @@ ON_WM_CLOSE()
 ON_BN_CLICKED(IDCANCEL, &CEpXMLBuilderDlg::OnBnClickedCancel)
 ON_BN_CLICKED(IDC_BTN_LOAD_PRE_TEXT, &CEpXMLBuilderDlg::OnBnClickedBtnLoadPreText)
 ON_BN_CLICKED(IDC_BTN_ADD_ATTR, &CEpXMLBuilderDlg::OnBnClickedBtnAddAttr)
+ON_CBN_EDITCHANGE(IDC_CB_ATTR, &CEpXMLBuilderDlg::OnCbnEditchangeCbAttr)
+ON_CBN_EDITCHANGE(IDC_CB_ATTR_VALUE, &CEpXMLBuilderDlg::OnCbnEditchangeCbAttrValue)
 END_MESSAGE_MAP()
 
 
@@ -513,6 +515,78 @@ void CEpXMLBuilderDlg::OnCbnEditchangeCbValue()
 	
 	m_cbNodeValue.ShowDropDown(TRUE);
 }
+
+
+
+void CEpXMLBuilderDlg::OnCbnEditchangeCbAttr()
+{
+	// TODO: Add your control notification handler code here
+
+	m_cbAttrName.Clear();
+	CString textString;
+	m_cbAttrName.GetWindowText(textString);
+	if(textString.GetLength()>0)
+	{
+		NodeStringMap::iterator iter;
+		for(iter=m_attrNameMap.begin();iter!=m_attrNameMap.end();iter++)
+		{
+			if( iter->first.Find(textString.GetString())!=-1)
+			{
+				m_cbAttrName.AddString(iter->first.GetString());
+			}
+		}
+	}
+	else
+	{
+		NodeStringMap::iterator iter;
+		for(iter=m_attrNameMap.begin();iter!=m_attrNameMap.end();iter++)
+		{
+			m_cbAttrName.AddString(iter->first.GetString());
+		}
+	}
+
+	m_cbAttrName.ShowDropDown(TRUE);
+}
+
+void CEpXMLBuilderDlg::OnCbnEditchangeCbAttrValue()
+{
+	// TODO: Add your control notification handler code here
+
+	m_cbAttrValue.Clear();
+	CString nameTextString;
+	CString valueTextString;
+	m_cbAttrName.GetWindowText(nameTextString);
+	m_cbAttrValue.GetWindowText(valueTextString);
+	if(nameTextString.GetLength()>0)
+	{
+		NodeStringMap::iterator iter=m_attrNameMap.find(nameTextString);
+		if(iter!=m_attrNameMap.end())
+		{
+			if(valueTextString.GetLength()>0)
+			{
+				for(int trav=0;trav<iter->second.size();trav++)
+				{
+					if(iter->second.at(trav).Find(valueTextString.GetString())!=-1)
+					{
+						m_cbAttrValue.AddString(iter->second.at(trav).GetString());
+					}
+				}
+			}
+			else
+			{
+				for(int trav=0;trav<iter->second.size();trav++)
+				{
+					m_cbAttrValue.AddString(iter->second.at(trav).GetString());
+				}
+			}
+
+		}
+
+	}
+
+	m_cbAttrValue.ShowDropDown(TRUE);
+}
+
 CString CEpXMLBuilderDlg::nodeFormat(CString nodeName, CString nodeValue)
 {
 	CString treeElemString=_T("<name = ");
@@ -539,6 +613,32 @@ CString CEpXMLBuilderDlg::attrFormat(CString attrName, CString attrValue)
 	treeElemString.AppendFormat(_T(" >"));
 	return treeElemString;
 }
+
+void CEpXMLBuilderDlg::OnBnClickedButton1()
+{
+	// TODO: Add your control notification handler code here
+	CString rootName;
+	CString rootValue;
+	m_tbRoot.GetWindowText(rootName);
+	m_tbRootValue.GetWindowText(rootValue);
+	if(rootName.GetLength()<=0)
+	{
+		MessageBox(_T("Invalid Rootname!\n\nPlease try again."),_T("Error"),MB_OK);
+		m_tbRoot.SetFocus();
+		m_tbRoot.SetSel(0,-1);
+	}
+
+	m_rootName=nodeFormat(rootName,rootValue);
+	XNode *node= &m_xmlFile;
+	node->m_name=rootName;
+	node->m_value=rootValue;
+
+	HTREEITEM rootItem=m_treeXML.GetFirstVisibleItem();
+	m_treeXML.SetItemText(rootItem,m_rootName.GetString());
+	m_isChanged=true;
+
+}
+
 void CEpXMLBuilderDlg::OnBnClickedBtnAdd()
 {
 	if(m_selectedTreeItem==NULL)
@@ -585,6 +685,56 @@ void CEpXMLBuilderDlg::OnBnClickedBtnAdd()
 	
 	m_isChanged=true;
 	m_cbNodeName.SetFocus();
+}
+
+
+
+
+void CEpXMLBuilderDlg::OnBnClickedBtnAddAttr()
+{
+	// TODO: Add your control notification handler code here
+
+	if(m_selectedTreeItem==NULL)
+	{
+		MessageBox(_T("Node is not selected from the tree!\n\nPlease select a node to add the attribute under."),_T("Error"),MB_OK);
+		return;
+	}
+	CString attrName,attrValue;
+	m_cbAttrName.GetWindowText(attrName);
+	m_cbAttrValue.GetWindowText(attrValue);
+	if(attrName.GetLength()<=0)
+	{
+		MessageBox(_T("Attribute Name is NULL!\n\nPlease input Attribute Name."),_T("Warning"),MB_OK);
+		m_cbAttrName.SetFocus();
+		m_cbAttrName.SetEditSel(0,-1);
+		return;
+	}
+
+
+	TreeNodeMap::iterator nodeIter=m_treeNodeMap.find(m_selectedTreeItem);
+	if(nodeIter==m_treeNodeMap.end() && m_treeXML.GetItemText(m_selectedTreeItem).Compare(m_rootName)!=0)
+	{
+		MessageBox(_T("Cannot attach the node/attribute to an Attibute element. Please select the node to insert under."),_T("Error"),MB_OK);
+		return;
+	}
+
+	CString treeElemString=attrFormat(attrName,attrValue);
+	HTREEITEM insertedItem=m_treeXML.InsertItem(treeElemString.GetString(),m_selectedTreeItem,TVI_LAST);
+
+	if(m_treeXML.GetItemText(m_selectedTreeItem).Compare(m_rootName)==0)
+	{
+		XAttr* insertedAttr=m_xmlFile.AppendAttr(attrName.GetString(),attrValue.GetString());
+		m_treeAttrMap[insertedItem]=insertedAttr;
+	}
+	else
+	{
+		XAttr* insertedAttr=nodeIter->second->AppendAttr(attrName.GetString(),attrValue.GetString());
+		m_treeAttrMap[insertedItem]=insertedAttr;
+	}
+	m_treeXML.Expand(m_selectedTreeItem,TVE_EXPAND);
+
+	m_isChanged=true;
+	m_cbAttrName.SetFocus();
 }
 
 void CEpXMLBuilderDlg::OnBnClickedBtnDelete()
@@ -732,30 +882,7 @@ BOOL CEpXMLBuilderDlg::PreTranslateMessage(MSG* pMsg)
 
 	return CDialog::PreTranslateMessage(pMsg);
 }
-void CEpXMLBuilderDlg::OnBnClickedButton1()
-{
-	// TODO: Add your control notification handler code here
-	CString rootName;
-	CString rootValue;
-	m_tbRoot.GetWindowText(rootName);
-	m_tbRootValue.GetWindowText(rootValue);
-	if(rootName.GetLength()<=0)
-	{
-		MessageBox(_T("Invalid Rootname!\n\nPlease try again."),_T("Error"),MB_OK);
-		m_tbRoot.SetFocus();
-		m_tbRoot.SetSel(0,-1);
-	}
 
-	m_rootName=nodeFormat(rootName,rootValue);
-	XNode *node= &m_xmlFile;
-	node->m_name=rootName;
-	node->m_value=rootValue;
-
-	HTREEITEM rootItem=m_treeXML.GetFirstVisibleItem();
-	m_treeXML.SetItemText(rootItem,m_rootName.GetString());
-	m_isChanged=true;
-
-}
 
 
 
@@ -805,51 +932,4 @@ void CEpXMLBuilderDlg::OnBnClickedBtnLoadPreText()
 	{
 		PreTestParser::Parse(m_textFile,m_nodeNameMap, m_attrNameMap);
 	}
-}
-
-void CEpXMLBuilderDlg::OnBnClickedBtnAddAttr()
-{
-	// TODO: Add your control notification handler code here
-
-	if(m_selectedTreeItem==NULL)
-	{
-		MessageBox(_T("Node is not selected from the tree!\n\nPlease select a node to add the attribute under."),_T("Error"),MB_OK);
-		return;
-	}
-	CString attrName,attrValue;
-	m_cbAttrName.GetWindowText(attrName);
-	m_cbAttrValue.GetWindowText(attrValue);
-	if(attrName.GetLength()<=0)
-	{
-		MessageBox(_T("Attribute Name is NULL!\n\nPlease input Attribute Name."),_T("Warning"),MB_OK);
-		m_cbAttrName.SetFocus();
-		m_cbAttrName.SetEditSel(0,-1);
-		return;
-	}
-
-	
-	TreeNodeMap::iterator nodeIter=m_treeNodeMap.find(m_selectedTreeItem);
-	if(nodeIter==m_treeNodeMap.end() && m_treeXML.GetItemText(m_selectedTreeItem).Compare(m_rootName)!=0)
-	{
-		MessageBox(_T("Cannot attach the node/attribute to an Attibute element. Please select the node to insert under."),_T("Error"),MB_OK);
-		return;
-	}
-
-	CString treeElemString=attrFormat(attrName,attrValue);
-	HTREEITEM insertedItem=m_treeXML.InsertItem(treeElemString.GetString(),m_selectedTreeItem,TVI_LAST);
-
-	if(m_treeXML.GetItemText(m_selectedTreeItem).Compare(m_rootName)==0)
-	{
-		XAttr* insertedAttr=m_xmlFile.AppendAttr(attrName.GetString(),attrValue.GetString());
-		m_treeAttrMap[insertedItem]=insertedAttr;
-	}
-	else
-	{
-		XAttr* insertedAttr=nodeIter->second->AppendAttr(attrName.GetString(),attrValue.GetString());
-		m_treeAttrMap[insertedItem]=insertedAttr;
-	}
-	m_treeXML.Expand(m_selectedTreeItem,TVE_EXPAND);
-
-	m_isChanged=true;
-	m_cbNodeName.SetFocus();
 }

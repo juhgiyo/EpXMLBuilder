@@ -122,4 +122,6 @@ public:
 	CComboBox m_cbAttrName;
 	CComboBox m_cbAttrValue;
 	CButton m_btnAddAttr;
+	afx_msg void OnCbnEditchangeCbAttr();
+	afx_msg void OnCbnEditchangeCbAttrValue();
 };
