@@ -192,6 +192,14 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\EpXMLBuilder.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\EpXMLBuilderDlg.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\stdafx.cpp"
 				>
 				<FileConfiguration
@@ -210,14 +218,6 @@
 						UsePrecompiledHeader="1"
 					/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\EpXMLBuilder.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\EpXMLBuilderDlg.cpp"
-				>
 			</File>
 		</Filter>
 		<Filter
@@ -529,6 +529,10 @@
 			</File>
 			<File
 				RelativePath=".\EpLibraryHeaders\epWinProcessHelper.h"
+				>
+			</File>
+			<File
+				RelativePath=".\EpLibraryHeaders\epWinResizer.h"
 				>
 			</File>
 			<File
