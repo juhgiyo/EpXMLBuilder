@@ -125,4 +125,6 @@ public:
 	
 	
 	
+	CComboBox m_cbEncoding;
+	afx_msg void OnCbnSelchangeCbEncoding();
 };

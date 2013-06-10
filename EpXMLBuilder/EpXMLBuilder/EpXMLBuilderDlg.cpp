@@ -73,6 +73,7 @@ void CEpXMLBuilderDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_CB_ATTR, m_cbAttrName);
 	DDX_Control(pDX, IDC_CB_ATTR_VALUE, m_cbAttrValue);
 	DDX_Control(pDX, IDC_BTN_ADD_ATTR, m_btnAddAttr);
+	DDX_Control(pDX, IDC_CB_ENCODING, m_cbEncoding);
 }
 
 BEGIN_MESSAGE_MAP(CEpXMLBuilderDlg, CDialog)
@@ -96,6 +97,7 @@ ON_BN_CLICKED(IDC_BTN_LOAD_PRE_TEXT, &CEpXMLBuilderDlg::OnBnClickedBtnLoadPreTex
 ON_BN_CLICKED(IDC_BTN_ADD_ATTR, &CEpXMLBuilderDlg::OnBnClickedBtnAddAttr)
 ON_CBN_EDITCHANGE(IDC_CB_ATTR, &CEpXMLBuilderDlg::OnCbnEditchangeCbAttr)
 ON_CBN_EDITCHANGE(IDC_CB_ATTR_VALUE, &CEpXMLBuilderDlg::OnCbnEditchangeCbAttrValue)
+ON_CBN_SELCHANGE(IDC_CB_ENCODING, &CEpXMLBuilderDlg::OnCbnSelchangeCbEncoding)
 END_MESSAGE_MAP()
 
 
@@ -214,6 +216,11 @@ BOOL CEpXMLBuilderDlg::OnInitDialog()
 	node->m_name=_T("Root");
 	node->m_value=_T("");
 	m_treeXML.SelectItem(m_selectedTreeItem);
+
+	// Encoding
+	m_cbEncoding.AddString(_T("UTF-16"));
+	m_cbEncoding.AddString(_T("UTF-8"));
+	m_cbEncoding.SetCurSel(0);
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -981,5 +988,18 @@ void CEpXMLBuilderDlg::OnBnClickedBtnLoadPreText()
 	if(m_textFile.LoadFromFile(iniFileName.GetString()))
 	{
 		PreTestParser::Parse(m_textFile,m_nodeNameMap, m_attrNameMap);
+	}
+}
+
+void CEpXMLBuilderDlg::OnCbnSelchangeCbEncoding()
+{
+	// TODO: Add your control notification handler code here
+	if(m_cbEncoding.GetCurSel()==0)
+	{
+		// Set XML as UTF-16
+	}
+	else
+	{
+		// Set XML as UTF-8
 	}
 }

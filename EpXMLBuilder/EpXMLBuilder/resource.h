@@ -11,7 +11,6 @@
 #define IDC_TREE1                       1000
 #define IDC_BTN_ADD                     1001
 #define IDC_BTN_DELETE                  1002
-#define IDC_BTN_ADD2                    1003
 #define IDC_BTN_ADD_ATTR                1003
 #define IDC_CB_NODE                     1004
 #define IDC_CB_VALUE                    1005
@@ -36,6 +35,8 @@
 #define IDC_ST_ATTR_NAME                1023
 #define IDC_ST_ATTR_VALUE               1024
 #define IDC_ST_ATTR_GROUP               1025
+#define IDC_COMBO1                      1026
+#define IDC_CB_ENCODING                 1026
 
 // Next default values for new objects
 // 
@@ -43,7 +44,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        130
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1020
+#define _APS_NEXT_CONTROL_VALUE         1027
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
