@@ -27,6 +27,7 @@ public:
 	CString m_nameString;
 	CString m_valueString;
 	XNode *m_parentNode;
+	XAttr *m_attr;
 	CWnd *m_mainDlg;
 	afx_msg void OnBnClickedOk();
 	afx_msg void OnBnClickedButton1();

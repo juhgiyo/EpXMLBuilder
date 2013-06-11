@@ -113,6 +113,9 @@ ON_BN_CLICKED(IDC_BTN_CONFIGURE_VALIDATOR, &CEpXMLBuilderDlg::OnBnClickedBtnConf
 ON_WM_SIZING()
 ON_NOTIFY(NM_DBLCLK, IDC_TREE1, &CEpXMLBuilderDlg::OnNMDblclkTree1)
 ON_BN_CLICKED(IDC_BTN_VALIDATE, &CEpXMLBuilderDlg::OnBnClickedBtnValidate)
+ON_NOTIFY(NM_CLICK, IDC_TREE1, &CEpXMLBuilderDlg::OnNMClickTree1)
+//ON_NOTIFY(TVN_ITEMEXPANDING, IDC_TREE1, &CEpXMLBuilderDlg::OnTvnItemexpandingTree1)
+ON_NOTIFY(NM_RCLICK, IDC_TREE1, &CEpXMLBuilderDlg::OnNMRClickTree1)
 END_MESSAGE_MAP()
 
 
@@ -442,7 +445,7 @@ void CEpXMLBuilderDlg::OnBnClickedBtnLoad()
 	}
 
 	traverseXMLAndInsert();
-
+	m_treeXML.SortChildren(m_selectedTreeItem);
 
 	m_isChanged=false;
 	m_lbFilename.SetWindowText(fileName.GetString());
@@ -671,6 +674,8 @@ void CEpXMLBuilderDlg::OnCbnEditchangeCbAttrValue()
 
 CString CEpXMLBuilderDlg::nodeFormat(CString nodeName, CString nodeValue)
 {
+	nodeName=nodeName.Trim();
+	nodeValue=nodeValue.Trim();
 	CString treeElemString=_T("<name = ");
 	treeElemString.Append(nodeName);
 	if(nodeValue.GetLength()>0)
@@ -685,6 +690,8 @@ CString CEpXMLBuilderDlg::nodeFormat(CString nodeName, CString nodeValue)
 
 CString CEpXMLBuilderDlg::attrFormat(CString attrName, CString attrValue)
 {
+	attrName=attrName.Trim();
+	attrValue=attrValue.Trim();
 	CString treeElemString=_T("<attrName = ");
 	treeElemString.Append(attrName);
 	if(attrValue.GetLength()>0)
@@ -696,7 +703,7 @@ CString CEpXMLBuilderDlg::attrFormat(CString attrName, CString attrValue)
 	return treeElemString;
 }
 
-ValidState CEpXMLBuilderDlg::validateName(CString name,CString &retMessage,XNode* parentNode)
+ValidState CEpXMLBuilderDlg::validateName(CString name,CString &retMessage,XNode* parentNode,XAttr *checkAttr)
 {
 	retMessage=_T("");
 	CString errMessage,warningMessage;
@@ -739,6 +746,8 @@ ValidState CEpXMLBuilderDlg::validateName(CString name,CString &retMessage,XNode
 	{
 		for(XAttrs::iterator iter=parentNode->m_attrs.begin();iter!=parentNode->m_attrs.end();iter++)
 		{
+			if(checkAttr && (*iter)==checkAttr)
+				continue;
 			if((*iter)->m_name.Compare(name)==0)
 			{
 				errMessage.Append(_T("- A node cannot have attributes with same name.\n"));
@@ -867,7 +876,7 @@ void CEpXMLBuilderDlg::OnBnClickedBtnAdd()
 	TreeNodeMap::iterator nodeIter=m_treeNodeMap.find(m_selectedTreeItem);
 	if(nodeIter==m_treeNodeMap.end() && m_treeXML.GetItemText(m_selectedTreeItem).Compare(m_rootName)!=0)
 	{
-		MessageBox(_T("Cannot attach the node/attribute to an Attibute element. Please select the node to insert under."),_T("Error"),MB_OK);
+		MessageBox(_T("Cannot attach the node/attribute to an Attibute element.\n\nPlease select the node to insert under."),_T("Error"),MB_OK);
 		return;
 	}
 
@@ -908,6 +917,7 @@ void CEpXMLBuilderDlg::OnBnClickedBtnAdd()
 	
 	m_isChanged=true;
 	m_cbNodeName.SetFocus();
+	m_treeXML.SortChildren(m_selectedTreeItem);
 }
 
 
@@ -939,7 +949,7 @@ void CEpXMLBuilderDlg::OnBnClickedBtnAddAttr()
 	TreeNodeMap::iterator nodeIter=m_treeNodeMap.find(m_selectedTreeItem);
 	if(nodeIter==m_treeNodeMap.end() && m_treeXML.GetItemText(m_selectedTreeItem).Compare(m_rootName)!=0)
 	{
-		MessageBox(_T("Cannot attach the node/attribute to an Attibute element. Please select the node to insert under."),_T("Error"),MB_OK);
+		MessageBox(_T("Cannot attach the node/attribute to an Attibute element.\n\nPlease select the node to insert under."),_T("Error"),MB_OK);
 		return;
 	}
 
@@ -984,6 +994,7 @@ void CEpXMLBuilderDlg::OnBnClickedBtnAddAttr()
 
 	m_isChanged=true;
 	m_cbAttrName.SetFocus();
+	m_treeXML.SortChildren(m_selectedTreeItem);
 }
 
 void CEpXMLBuilderDlg::OnBnClickedBtnDelete()
@@ -1075,6 +1086,12 @@ BOOL CEpXMLBuilderDlg::PreTranslateMessage(MSG* pMsg)
 			else if(m_lastFocus==&m_cbNodeName||m_lastFocus==&m_cbNodeValue||m_lastFocus==&m_btnAdd)
 			{
 				OnBnClickedBtnAdd();
+				return TRUE;
+			}
+			else if(m_lastFocus==&m_treeXML)
+			{
+				LONG result;
+				OnNMDblclkTree1(NULL,&result);
 				return TRUE;
 			}
 		}
@@ -1278,6 +1295,41 @@ void CEpXMLBuilderDlg::OnBnSetfocusBtnAddAttr()
 	m_lastFocus=&m_btnAddAttr;
 }
 
+void CEpXMLBuilderDlg::OnNMClickTree1(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	// TODO: Add your control notification handler code here
+	*pResult = 0;
+	m_lastFocus=&m_treeXML;
+}
+
+void CEpXMLBuilderDlg::OnNMRClickTree1(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	// TODO: Add your control notification handler code here
+	*pResult = 0;
+	
+	m_lastFocus=&m_treeXML;
+
+	DWORD dPos=GetMessagePos();
+	POINTS points=MAKEPOINTS(dPos);
+	POINT point;
+	point.x=(LONG)points.x;
+	point.y=(LONG)points.y;
+	m_treeXML.ScreenToClient(&point);
+	CPoint cPoint=CPoint(point);
+	UINT uFlags;
+	HTREEITEM item=m_treeXML.HitTest(cPoint, &uFlags);
+	if ((item != NULL) && (TVHT_ONITEM & uFlags))
+	{
+		m_treeXML.Select(item, TVGN_CARET);
+		m_selectedTreeItem=item;
+		m_treeXML.Expand(m_selectedTreeItem,TVE_TOGGLE);
+	}
+	else
+		return;
+
+}
+
+
 void CEpXMLBuilderDlg::OnBnClickedBtnConfigureValidator()
 {
 	// TODO: Add your control notification handler code here
@@ -1353,6 +1405,7 @@ void CEpXMLBuilderDlg::OnNMDblclkTree1(NMHDR *pNMHDR, LRESULT *pResult)
 	m_nodeChangeDlg.m_nameString=name;
 	m_nodeChangeDlg.m_valueString=value;
 	m_nodeChangeDlg.m_parentNode=parentNode;
+	m_nodeChangeDlg.m_attr=attr;
 	if(m_nodeChangeDlg.DoModal()==IDOK)
 	{
 		name=m_nodeChangeDlg.m_nameString;
@@ -1367,8 +1420,6 @@ void CEpXMLBuilderDlg::OnNMDblclkTree1(NMHDR *pNMHDR, LRESULT *pResult)
 			if(isRoot)
 			{
 				m_rootName=updateString;
-				m_tbRoot.SetWindowText(name.GetString());
-				m_tbRootValue.SetWindowText(value.GetString());
 			}
 		}
 		else
@@ -1379,11 +1430,117 @@ void CEpXMLBuilderDlg::OnNMDblclkTree1(NMHDR *pNMHDR, LRESULT *pResult)
 			attr->m_value=value;
 		}
 	}
+	m_treeXML.Expand(m_selectedTreeItem,TVE_TOGGLE);
+	m_treeXML.SortChildren(m_treeXML.GetParentItem(m_selectedTreeItem));
+	
 }
 
 void CEpXMLBuilderDlg::OnBnClickedBtnValidate()
 {
 	// TODO: Add your control notification handler code here
+	HTREEITEM item=m_treeXML.GetFirstVisibleItem();
 	
 
+	while(item!=NULL)
+	{
+		CString name=_T("");
+		CString value=_T("");
+
+		CString textString=m_treeXML.GetItemText(item);
+		TreeAttrMap::iterator attrIter=m_treeAttrMap.find(item);
+		TreeNodeMap::iterator nodeIter=m_treeNodeMap.find(item);
+
+		bool isRoot=false;
+		bool isNode=true;
+		XNode *parentNode=NULL;
+
+		XNode *node=NULL;
+		XAttr *attr=NULL;
+
+		if(nodeIter==m_treeNodeMap.end())
+		{
+			if(attrIter==m_treeAttrMap.end())
+			{
+				if(textString.Compare(m_rootName)!=0)
+				{
+					EP_ASSERT(0);
+					return;
+				}
+				else
+				{
+					isRoot=true;
+					isNode=true;
+					name=m_xmlFile.m_name;
+					value=m_xmlFile.m_value;
+					node=&m_xmlFile;
+				}
+			}
+			else
+			{
+				isRoot=false;
+				isNode=false;
+				name=attrIter->second->m_name;
+				value=attrIter->second->m_value;
+				parentNode=attrIter->second->m_parent;
+				attr=attrIter->second;
+			}
+		}
+		else
+		{
+			isRoot=false;
+			isNode=true;
+			name=nodeIter->second->m_name;
+			value=nodeIter->second->m_value;
+			node=nodeIter->second;
+		}
+		
+		// textString
+		// Warning/Error Type
+		// Message
+
+		//isRoot
+		//isNode
+		//name
+		//value
+		//parentNode
+		//node
+		//attr
+
+		HTREEITEM testItem=NULL;
+		testItem=m_treeXML.GetNextItem(item,TVGN_CHILD );
+		if(!testItem)
+			testItem=m_treeXML.GetNextItem(item,TVGN_NEXT );
+		item=testItem;
+	}
+
+
+// 	m_nodeChangeDlg.m_nameString=name;
+// 	m_nodeChangeDlg.m_valueString=value;
+// 	m_nodeChangeDlg.m_parentNode=parentNode;
+// 	if(m_nodeChangeDlg.DoModal()==IDOK)
+// 	{
+// 		name=m_nodeChangeDlg.m_nameString;
+// 		value=m_nodeChangeDlg.m_valueString;
+// 
+// 		if(isNode)
+// 		{
+// 			CString updateString=nodeFormat(name,value);
+// 			m_treeXML.SetItemText(m_selectedTreeItem,updateString.GetString());
+// 			node->m_name=name;
+// 			node->m_value=value;
+// 			if(isRoot)
+// 			{
+// 				m_rootName=updateString;
+// 			}
+// 		}
+// 		else
+// 		{
+// 			CString updateString=attrFormat(name,value);
+// 			m_treeXML.SetItemText(m_selectedTreeItem,updateString.GetString());
+// 			attr->m_name=name;
+// 			attr->m_value=value;
+// 		}
+// 	}
 }
+
+

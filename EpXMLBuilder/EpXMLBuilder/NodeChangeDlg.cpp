@@ -55,7 +55,7 @@ void CNodeChangeDlg::OnBnClickedOk()
 	m_nameString=m_nameString.Trim();
 	m_valueString=m_valueString.Trim();
 	CString retMessage;	
-	ValidState state= ((CEpXMLBuilderDlg*) m_mainDlg)->validateName(m_nameString,retMessage,m_parentNode);
+	ValidState state= ((CEpXMLBuilderDlg*) m_mainDlg)->validateName(m_nameString,retMessage,m_parentNode,m_attr);
 	if(state==VALID_STATE_INVALID)
 	{
 		MessageBox(retMessage,_T("Error"),MB_OK);

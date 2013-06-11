@@ -111,7 +111,7 @@ public:
 	CString attrFormat(CString nodeName, CString nodeValue);
 	void traverseXMLAndInsert();
 
-	ValidState validateName(CString name,CString &retMessage,XNode* parentNode=NULL);
+	ValidState validateName(CString name,CString &retMessage,XNode* parentNode=NULL,XAttr *checkAttr=NULL);
 	
 	
 	bool m_isChanged;
@@ -142,4 +142,7 @@ public:
 
 	afx_msg void OnNMDblclkTree1(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnBnClickedBtnValidate();
+	afx_msg void OnNMClickTree1(NMHDR *pNMHDR, LRESULT *pResult);
+//	afx_msg void OnTvnItemexpandingTree1(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnNMRClickTree1(NMHDR *pNMHDR, LRESULT *pResult);
 };
