@@ -10,28 +10,17 @@
 #include <vector>
 #include "afxcmn.h"
 #include "afxdtctl.h"
-#include "WndResizer.h"
 #include "epPreTextParser.h"
-
+#include "epXMLValidatorProperties.h"
+#include "ConfigureValidatorDlg.h"
+#include "NodeChangeDlg.h"
 using namespace epl;
-/*!
-@def POP_UP_TIME_TO_SHOW
-@brief Macro for declaring the time in milli sec of the toggle window comes up
-*/
-#define POP_UP_TIME_TO_SHOW    500
 
-/*!
-@def POP_UP_TIME_TO_STAY
-@brief Macro for declaring the time in milli sec of the toggle window stays
-*/
-#define POP_UP_TIME_TO_STAY    3000
-
-/*!
-@def POP_UP_TIME_TO_HIDE
-@brief Macro for declaring the time in milli sec of the toggle window goes down
-*/
-#define POP_UP_TIME_TO_HIDE    500
-
+typedef enum _validState{
+	VALID_STATE_VALID=0,
+	VALID_STATE_INVALID,
+	VALID_STATE_WARNING,
+}ValidState;
 
 // CEpXMLBuilderDlg dialog
 class CEpXMLBuilderDlg : public CDialog
@@ -61,7 +50,7 @@ protected:
 	XMLFile m_xmlFile;
 
 public:
-//	afx_msg void OnBnClickedButton6();
+
 	CButton m_btnNew;
 	CButton m_btnLoad;
 	CButton m_btnSave;
@@ -78,6 +67,9 @@ public:
 	CComboBox m_cbAttrName;
 	CComboBox m_cbAttrValue;
 	CButton m_btnAddAttr;
+	CComboBox m_cbEncoding;
+	CButton m_btnChange;
+	CButton m_btnConfigureValidator;
 
 	CTaskbarNotifier m_notifyWin;
 	
@@ -99,11 +91,28 @@ public:
 	afx_msg void OnCbnEditchangeCbAttr();
 	afx_msg void OnCbnEditchangeCbAttrValue();
 
+	afx_msg void OnCbnSelchangeCbEncoding();
+
+	afx_msg void OnEnSetfocusTbRoot();
+	afx_msg void OnEnSetfocusTbRootvalue();
+	afx_msg void OnCbnSetfocusCbNode();
+	afx_msg void OnCbnSetfocusCbValue();
+	afx_msg void OnCbnSetfocusCbAttr();
+	afx_msg void OnCbnSetfocusCbAttrValue();
+	afx_msg void OnBnSetfocusButton1();
+	afx_msg void OnBnSetfocusBtnAdd();
+	afx_msg void OnBnSetfocusBtnAddAttr();
+	afx_msg void OnBnClickedBtnConfigureValidator();
+	afx_msg void OnSizing(UINT fwSide, LPRECT pRect);
+
 	bool continueOnChanged();
 	HTREEITEM insertNode(CString nodeName, CString nodeValue,HTREEITEM insertUnder,XNode *node);
 	CString nodeFormat(CString nodeName, CString nodeValue);
 	CString attrFormat(CString nodeName, CString nodeValue);
 	void traverseXMLAndInsert();
+
+	ValidState validateName(CString name,CString &retMessage,XNode* parentNode=NULL);
+	
 	
 	bool m_isChanged;
 
@@ -121,22 +130,16 @@ public:
 	CString m_rootName;
 	TextFile m_textFile;
 
-	CWndResizer m_resizer;
-	
-	
-	
-	CComboBox m_cbEncoding;
-	CButton m_btnChange;
+	WinResizer m_resizer;
+	CSize m_minSize;
 	CWnd *m_lastFocus;
-	afx_msg void OnCbnSelchangeCbEncoding();
 	
-	afx_msg void OnEnSetfocusTbRoot();
-	afx_msg void OnEnSetfocusTbRootvalue();
-	afx_msg void OnCbnSetfocusCbNode();
-	afx_msg void OnCbnSetfocusCbValue();
-	afx_msg void OnCbnSetfocusCbAttr();
-	afx_msg void OnCbnSetfocusCbAttrValue();
-	afx_msg void OnBnSetfocusButton1();
-	afx_msg void OnBnSetfocusBtnAdd();
-	afx_msg void OnBnSetfocusBtnAddAttr();
+	
+
+	CConfigureValidatorDlg m_configureValidatorDlg;
+	CNodeChangeDlg m_nodeChangeDlg;
+	
+
+	afx_msg void OnNMDblclkTree1(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnBnClickedBtnValidate();
 };

@@ -6,6 +6,9 @@
 #define IDD_ABOUTBOX                    100
 #define IDS_ABOUTBOX                    101
 #define IDD_EPXMLBUILDER_DIALOG         102
+#define IDD_VALIDATOR                   103
+#define IDD_NODE_CHANGE                 104
+#define IDR_HTML_NODECHANGEDLG          105
 #define IDR_MAINFRAME                   128
 #define IDB_BITMAP1                     129
 #define IDC_TREE1                       1000
@@ -37,6 +40,18 @@
 #define IDC_ST_ATTR_GROUP               1025
 #define IDC_COMBO1                      1026
 #define IDC_CB_ENCODING                 1026
+#define IDC_BTN_CONFIGURE_VALIDATOR     1027
+#define IDC_CB_NUMBER                   1028
+#define IDC_BTN_VALIDATE                1028
+#define IDC_CB_XML                      1029
+#define IDC_CB_SPACE                    1030
+#define IDC_CB_DASH                     1031
+#define IDC_CB_PERIOD                   1032
+#define IDC_TB_NAME                     1032
+#define IDC_CB_COLON                    1033
+#define IDC_EDIT2                       1033
+#define IDC_TB_VALUE                    1033
+#define IDC_CB_DUPLICATE                1034
 
 // Next default values for new objects
 // 
@@ -44,7 +59,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        130
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1027
-#define _APS_NEXT_SYMED_VALUE           101
+#define _APS_NEXT_CONTROL_VALUE         1033
+#define _APS_NEXT_SYMED_VALUE           106
 #endif
 #endif

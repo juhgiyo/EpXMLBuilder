@@ -192,11 +192,19 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\ConfigureValidatorDlg.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\EpXMLBuilder.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\EpXMLBuilderDlg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\NodeChangeDlg.cpp"
 				>
 			</File>
 			<File
@@ -226,11 +234,19 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath=".\ConfigureValidatorDlg.h"
+				>
+			</File>
+			<File
 				RelativePath=".\EpXMLBuilder.h"
 				>
 			</File>
 			<File
 				RelativePath=".\EpXMLBuilderDlg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\NodeChangeDlg.h"
 				>
 			</File>
 			<File
@@ -576,11 +592,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Core\WndResizer.cpp"
+				RelativePath=".\Core\epXMLValidatorProperties.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Core\WndResizer.h"
+				RelativePath=".\Core\epXMLValidatorProperties.h"
 				>
 			</File>
 		</Filter>

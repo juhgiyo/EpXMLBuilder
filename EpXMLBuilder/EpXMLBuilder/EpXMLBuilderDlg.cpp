@@ -75,6 +75,7 @@ void CEpXMLBuilderDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_BTN_ADD_ATTR, m_btnAddAttr);
 	DDX_Control(pDX, IDC_CB_ENCODING, m_cbEncoding);
 	DDX_Control(pDX, IDC_BUTTON1, m_btnChange);
+	DDX_Control(pDX, IDC_BTN_CONFIGURE_VALIDATOR, m_btnConfigureValidator);
 }
 
 BEGIN_MESSAGE_MAP(CEpXMLBuilderDlg, CDialog)
@@ -108,6 +109,10 @@ ON_CBN_SETFOCUS(IDC_CB_ATTR_VALUE, &CEpXMLBuilderDlg::OnCbnSetfocusCbAttrValue)
 ON_BN_SETFOCUS(IDC_BUTTON1, &CEpXMLBuilderDlg::OnBnSetfocusButton1)
 ON_BN_SETFOCUS(IDC_BTN_ADD, &CEpXMLBuilderDlg::OnBnSetfocusBtnAdd)
 ON_BN_SETFOCUS(IDC_BTN_ADD_ATTR, &CEpXMLBuilderDlg::OnBnSetfocusBtnAddAttr)
+ON_BN_CLICKED(IDC_BTN_CONFIGURE_VALIDATOR, &CEpXMLBuilderDlg::OnBnClickedBtnConfigureValidator)
+ON_WM_SIZING()
+ON_NOTIFY(NM_DBLCLK, IDC_TREE1, &CEpXMLBuilderDlg::OnNMDblclkTree1)
+ON_BN_CLICKED(IDC_BTN_VALIDATE, &CEpXMLBuilderDlg::OnBnClickedBtnValidate)
 END_MESSAGE_MAP()
 
 
@@ -145,8 +150,14 @@ BOOL CEpXMLBuilderDlg::OnInitDialog()
 	// TODO: Add extra initialization here
 
 	// Set Anchors
-	m_resizer.Hook(this);
 
+	RECT curRect;
+	this->GetWindowRect(&curRect);
+	m_minSize=CSize(curRect.right-curRect.left,curRect.bottom-curRect.top);
+
+	
+	m_resizer.Hook(this);
+		
 	m_resizer.SetAnchor(IDC_BTN_LOAD_PRE_TEXT,ANCHOR_LEFT|ANCHOR_TOP);
 
 	m_resizer.SetAnchor(IDC_BTN_DELETE,ANCHOR_LEFT|ANCHOR_TOP);
@@ -182,6 +193,9 @@ BOOL CEpXMLBuilderDlg::OnInitDialog()
 	m_resizer.SetAnchor(IDC_ST_ATTR_VALUE,ANCHOR_RIGHT|ANCHOR_TOP);
 
 	m_resizer.SetAnchor(IDCANCEL,ANCHOR_RIGHT|ANCHOR_BOTTOM);
+
+	m_resizer.SetAnchor(IDC_BTN_CONFIGURE_VALIDATOR,ANCHOR_RIGHT|ANCHOR_TOP);
+	
 
 	
 	BOOL bOk = FALSE;
@@ -304,6 +318,7 @@ bool CEpXMLBuilderDlg::continueOnChanged()
 				fileName=saveDialog.GetPathName();
 			}
 			m_xmlFile.SaveToFile(fileName);
+			m_notifyWin.Show(_T("XML is saved."));
 		}
 		else if(result==IDCANCEL )
 		{
@@ -450,7 +465,7 @@ void CEpXMLBuilderDlg::OnBnClickedBtnSave()
 	m_xmlFile.SaveToFile(fileName);
 	m_isChanged=false;
 
-	m_notifyWin.Show(_T("XML is saved."),POP_UP_TIME_TO_SHOW,POP_UP_TIME_TO_STAY,POP_UP_TIME_TO_HIDE);
+	m_notifyWin.Show(_T("XML is saved."));
 }
 
 void CEpXMLBuilderDlg::OnBnClickedBtnSaveAs()
@@ -464,7 +479,7 @@ void CEpXMLBuilderDlg::OnBnClickedBtnSaveAs()
 	m_xmlFile.SaveToFile(fileName);
 	m_isChanged=false;
 	m_lbFilename.SetWindowText(fileName.GetString());
-	m_notifyWin.Show(_T("XML is saved."),POP_UP_TIME_TO_SHOW,POP_UP_TIME_TO_STAY,POP_UP_TIME_TO_HIDE);
+	m_notifyWin.Show(_T("XML is saved."));
 }
 
 
@@ -681,6 +696,103 @@ CString CEpXMLBuilderDlg::attrFormat(CString attrName, CString attrValue)
 	return treeElemString;
 }
 
+ValidState CEpXMLBuilderDlg::validateName(CString name,CString &retMessage,XNode* parentNode)
+{
+	retMessage=_T("");
+	CString errMessage,warningMessage;
+	errMessage=_T("");
+	warningMessage=_T("");
+
+	ValidState retVal=VALID_STATE_VALID;
+	if(XML_VALIDATOR_PROPERTIES_INSTANCE.ShouldCheckNumber())
+	{
+		TCHAR firstLetter=name.GetAt(0);
+		if(Locale::IsPunct(firstLetter)||Locale::IsDigit(firstLetter))
+		{
+			errMessage.Append(_T("- Name cannot start with a number or a punctuation.\n"));
+			retVal= VALID_STATE_INVALID;
+		}
+	}
+
+	if(XML_VALIDATOR_PROPERTIES_INSTANCE.ShouldCheckStartWithXML())
+	{
+		CString firstThreeWord=name;
+		firstThreeWord.Delete(3,firstThreeWord.GetLength()-3);
+		firstThreeWord=firstThreeWord.MakeLower();
+		if(firstThreeWord.Compare(_T("xml"))==0)
+		{
+			errMessage.Append(_T("- Name cannot start with \"xml\".\n"));
+			retVal= VALID_STATE_INVALID;
+		}
+	}
+	if(XML_VALIDATOR_PROPERTIES_INSTANCE.ShouldCheckContainSpace())
+	{
+		if(name.Find(_T(" "))!=-1)
+		{
+			errMessage.Append(_T("- Name cannot contain \"Space ( )\".\n"));
+			retVal= VALID_STATE_INVALID;
+		}
+		
+	}
+
+	if(XML_VALIDATOR_PROPERTIES_INSTANCE.ShouldCheckDuplicate() && parentNode)
+	{
+		for(XAttrs::iterator iter=parentNode->m_attrs.begin();iter!=parentNode->m_attrs.end();iter++)
+		{
+			if((*iter)->m_name.Compare(name)==0)
+			{
+				errMessage.Append(_T("- A node cannot have attributes with same name.\n"));
+				retVal= VALID_STATE_INVALID;
+				break;
+			}
+		}
+	}
+
+	if(XML_VALIDATOR_PROPERTIES_INSTANCE.ShouldWarnContainDash())
+	{
+		if(name.Find(_T("-"))!=-1)
+		{
+			warningMessage.Append(_T("- Name should not contain \"Dash (-)\".\n"));
+			if(retVal==VALID_STATE_VALID)
+				retVal=VALID_STATE_WARNING;
+		}
+	}
+
+	if(XML_VALIDATOR_PROPERTIES_INSTANCE.ShouldWarnContainPeriod())
+	{
+		if(name.Find(_T("."))!=-1)
+		{
+			warningMessage.Append(_T("- Name should not contain \"Period (.)\".\n"));
+			if(retVal==VALID_STATE_VALID)
+				retVal=VALID_STATE_WARNING;
+		}
+	}
+
+	if(XML_VALIDATOR_PROPERTIES_INSTANCE.ShouldWarnContainColon())
+	{
+		if(name.Find(_T(":"))!=-1)
+		{
+			warningMessage.Append(_T("- Name should not contain \"Colon(:)\".\n"));
+			if(retVal==VALID_STATE_VALID)
+				retVal=VALID_STATE_WARNING;
+		}
+	}
+
+	if(errMessage.GetLength())
+	{
+		retMessage.Append(_T("Cannot proceed due to following:\n\n"));
+		retMessage.Append(errMessage);
+		retMessage.Append(_T("\n"));
+	}
+	if(warningMessage.GetLength())
+	{
+		retMessage.Append(_T("Warnings:\n\n"));
+		retMessage.Append(warningMessage);
+		retMessage.Append(_T("\n"));
+	}
+	return retVal;
+}
+
 void CEpXMLBuilderDlg::OnBnClickedButton1()
 {
 	// TODO: Add your control notification handler code here
@@ -688,11 +800,34 @@ void CEpXMLBuilderDlg::OnBnClickedButton1()
 	CString rootValue;
 	m_tbRoot.GetWindowText(rootName);
 	m_tbRootValue.GetWindowText(rootValue);
+	rootName=rootName.Trim();
+	rootValue=rootValue.Trim();
 	if(rootName.GetLength()<=0)
 	{
 		MessageBox(_T("Invalid Rootname!\n\nPlease try again."),_T("Error"),MB_OK);
 		m_tbRoot.SetFocus();
 		m_tbRoot.SetSel(0,-1);
+		return;
+	}
+
+	CString message;
+	ValidState state=validateName(rootName,message);
+	if(state==VALID_STATE_INVALID)
+	{
+		MessageBox(message,_T("Error"),MB_OK);
+		m_tbRoot.SetFocus();
+		m_tbRoot.SetSel(0,-1);
+		return;
+	}
+	else if(state==VALID_STATE_WARNING)
+	{
+		message.Append(_T("Proceed?"));
+		if(MessageBox(message,_T("Warning"),MB_YESNO)==IDNO)
+		{
+			m_tbRoot.SetFocus();
+			m_tbRoot.SetSel(0,-1);
+			return;
+		}
 	}
 
 	m_rootName=nodeFormat(rootName,rootValue);
@@ -716,6 +851,8 @@ void CEpXMLBuilderDlg::OnBnClickedBtnAdd()
 	CString nodeName,nodeValue;
 	m_cbNodeName.GetWindowText(nodeName);
 	m_cbNodeValue.GetWindowText(nodeValue);
+	nodeName=nodeName.Trim();
+	nodeValue=nodeValue.Trim();
 	if(nodeName.GetLength()<=0)
 	{
 		MessageBox(_T("Node Name is NULL!\n\nPlease input Node Name."),_T("Warning"),MB_OK);
@@ -724,7 +861,7 @@ void CEpXMLBuilderDlg::OnBnClickedBtnAdd()
 		return;
 	}
 
-	
+		
 	CString treeElemString=nodeFormat(nodeName,nodeValue);
 
 	TreeNodeMap::iterator nodeIter=m_treeNodeMap.find(m_selectedTreeItem);
@@ -734,6 +871,25 @@ void CEpXMLBuilderDlg::OnBnClickedBtnAdd()
 		return;
 	}
 
+	CString message;
+	ValidState state=validateName(nodeName,message);
+	if(state==VALID_STATE_INVALID)
+	{
+		MessageBox(message,_T("Error"),MB_OK);
+		m_cbNodeName.SetFocus();
+		m_cbNodeName.SetEditSel(0,-1);
+		return;
+	}
+	else if(state==VALID_STATE_WARNING)
+	{
+		message.Append(_T("Proceed?"));
+		if(MessageBox(message,_T("Warning"),MB_YESNO)==IDNO)
+		{
+			m_cbNodeName.SetFocus();
+			m_cbNodeName.SetEditSel(0,-1);
+			return;
+		}
+	}
 
 	HTREEITEM insertedItem=m_treeXML.InsertItem(treeElemString.GetString(),m_selectedTreeItem,TVI_LAST);
 
@@ -769,6 +925,8 @@ void CEpXMLBuilderDlg::OnBnClickedBtnAddAttr()
 	CString attrName,attrValue;
 	m_cbAttrName.GetWindowText(attrName);
 	m_cbAttrValue.GetWindowText(attrValue);
+	attrName=attrName.Trim();
+	attrValue=attrValue.Trim();
 	if(attrName.GetLength()<=0)
 	{
 		MessageBox(_T("Attribute Name is NULL!\n\nPlease input Attribute Name."),_T("Warning"),MB_OK);
@@ -783,6 +941,30 @@ void CEpXMLBuilderDlg::OnBnClickedBtnAddAttr()
 	{
 		MessageBox(_T("Cannot attach the node/attribute to an Attibute element. Please select the node to insert under."),_T("Error"),MB_OK);
 		return;
+	}
+
+	CString message;
+	ValidState state;
+	if(nodeIter==m_treeNodeMap.end())
+		state=validateName(attrName,message,&m_xmlFile);
+	else
+		state=validateName(attrName,message,nodeIter->second);
+	if(state==VALID_STATE_INVALID)
+	{
+		MessageBox(message,_T("Error"),MB_OK);
+		m_cbAttrName.SetFocus();
+		m_cbAttrName.SetEditSel(0,-1);
+		return;
+	}
+	else if(state==VALID_STATE_WARNING)
+	{
+		message.Append(_T("Proceed?"));
+		if(MessageBox(message,_T("Warning"),MB_YESNO)==IDNO)
+		{
+			m_cbAttrName.SetFocus();
+			m_cbAttrName.SetEditSel(0,-1);
+			return;
+		}
 	}
 
 	CString treeElemString=attrFormat(attrName,attrValue);
@@ -962,6 +1144,17 @@ BOOL CEpXMLBuilderDlg::PreTranslateMessage(MSG* pMsg)
 
 	}
 
+	if((pMsg->message == WM_KEYDOWN) && 
+		(pMsg->wParam == 0x4E)) //V
+	{
+		if((GetKeyState(VK_CONTROL) & 0x8000))
+		{
+			OnBnClickedBtnValidate();
+			return TRUE;
+		}
+
+	}
+
 	return CDialog::PreTranslateMessage(pMsg);
 }
 
@@ -1022,10 +1215,12 @@ void CEpXMLBuilderDlg::OnCbnSelchangeCbEncoding()
 	if(m_cbEncoding.GetCurSel()==0)
 	{
 		// Set XML as UTF-16
+		m_xmlFile.SetEncodingType(FILE_ENCODING_TYPE_UTF16LE);
 	}
 	else
 	{
 		// Set XML as UTF-8
+		m_xmlFile.SetEncodingType(FILE_ENCODING_TYPE_UTF8);
 	}
 }
 
@@ -1081,4 +1276,114 @@ void CEpXMLBuilderDlg::OnBnSetfocusBtnAddAttr()
 {
 	// TODO: Add your control notification handler code here
 	m_lastFocus=&m_btnAddAttr;
+}
+
+void CEpXMLBuilderDlg::OnBnClickedBtnConfigureValidator()
+{
+	// TODO: Add your control notification handler code here
+	m_configureValidatorDlg.DoModal();
+}
+
+
+void CEpXMLBuilderDlg::OnSizing(UINT fwSide, LPRECT pRect)
+{
+	if(pRect->right-pRect->left<m_minSize.cx)
+	{
+		pRect->right=pRect->left+m_minSize.cx;
+	}
+	if(pRect->bottom-pRect->top<m_minSize.cy)
+	{
+		pRect->bottom=pRect->top+m_minSize.cy;
+	}
+	CDialog::OnSizing(fwSide, pRect);
+
+}
+
+void CEpXMLBuilderDlg::OnNMDblclkTree1(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	// TODO: Add your control notification handler code here
+	*pResult = 0;
+	if(m_selectedTreeItem==NULL)
+		return;
+	CString name;
+	CString value;
+	XNode *parentNode=NULL;
+	XNode *node=NULL;
+	XAttr *attr=NULL;
+	bool isRoot=false;
+	bool isNode=true;
+	TreeNodeMap::iterator nodeIter=m_treeNodeMap.find(m_selectedTreeItem);
+	if(nodeIter==m_treeNodeMap.end())
+	{
+		TreeAttrMap::iterator attrIter=m_treeAttrMap.find(m_selectedTreeItem);
+		if(attrIter==m_treeAttrMap.end())
+		{
+			if(m_treeXML.GetItemText(m_selectedTreeItem).Compare(m_rootName)==0)
+			{
+				// Root
+				name=m_xmlFile.m_name;
+				value=m_xmlFile.m_value;
+				isRoot=true;
+				isNode=true;
+				node=&m_xmlFile;
+			}
+			else
+			{
+				return;
+			}
+		}
+		else
+		{
+			name=attrIter->second->m_name;
+			value=attrIter->second->m_value;
+			parentNode=attrIter->second->m_parent;
+			attr=attrIter->second;
+			isNode=false;
+		}
+		
+	}
+	else
+	{
+		name=nodeIter->second->m_name;
+		value=nodeIter->second->m_value;
+		node=nodeIter->second;
+		isNode=true;
+	}
+
+	m_nodeChangeDlg.m_nameString=name;
+	m_nodeChangeDlg.m_valueString=value;
+	m_nodeChangeDlg.m_parentNode=parentNode;
+	if(m_nodeChangeDlg.DoModal()==IDOK)
+	{
+		name=m_nodeChangeDlg.m_nameString;
+		value=m_nodeChangeDlg.m_valueString;
+
+		if(isNode)
+		{
+			CString updateString=nodeFormat(name,value);
+			m_treeXML.SetItemText(m_selectedTreeItem,updateString.GetString());
+			node->m_name=name;
+			node->m_value=value;
+			if(isRoot)
+			{
+				m_rootName=updateString;
+				m_tbRoot.SetWindowText(name.GetString());
+				m_tbRootValue.SetWindowText(value.GetString());
+			}
+		}
+		else
+		{
+			CString updateString=attrFormat(name,value);
+			m_treeXML.SetItemText(m_selectedTreeItem,updateString.GetString());
+			attr->m_name=name;
+			attr->m_value=value;
+		}
+	}
+}
+
+void CEpXMLBuilderDlg::OnBnClickedBtnValidate()
+{
+	// TODO: Add your control notification handler code here
+	
+
 }
