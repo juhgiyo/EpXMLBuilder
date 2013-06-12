@@ -227,6 +227,10 @@
 					/>
 				</FileConfiguration>
 			</File>
+			<File
+				RelativePath=".\ValidateResultDlg.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -259,6 +263,10 @@
 			</File>
 			<File
 				RelativePath=".\targetver.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ValidateResultDlg.h"
 				>
 			</File>
 		</Filter>
@@ -589,6 +597,14 @@
 			</File>
 			<File
 				RelativePath=".\Core\epPreTextParser.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Core\epXMLUtil.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Core\epXMLUtil.h"
 				>
 			</File>
 			<File

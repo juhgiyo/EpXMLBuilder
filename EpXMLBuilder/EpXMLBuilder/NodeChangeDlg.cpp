@@ -55,7 +55,7 @@ void CNodeChangeDlg::OnBnClickedOk()
 	m_nameString=m_nameString.Trim();
 	m_valueString=m_valueString.Trim();
 	CString retMessage;	
-	ValidState state= ((CEpXMLBuilderDlg*) m_mainDlg)->validateName(m_nameString,retMessage,m_parentNode,m_attr);
+	ValidState state= XMLUtil::ValidateName(m_nameString,retMessage,m_isNode,m_parentNode,m_attr);
 	if(state==VALID_STATE_INVALID)
 	{
 		MessageBox(retMessage,_T("Error"),MB_OK);
@@ -82,4 +82,22 @@ void CNodeChangeDlg::OnBnClickedButton1()
 	// TODO: Add your control notification handler code here
 	CConfigureValidatorDlg configureValidatorDlg;
 	configureValidatorDlg.DoModal();
+}
+
+
+BOOL CNodeChangeDlg::PreTranslateMessage(MSG* pMsg)
+{
+	if((pMsg->message == WM_KEYDOWN) && 
+		(pMsg->wParam == 0x43)) //C
+	{
+		if((GetKeyState(VK_CONTROL) & 0x8000))
+		{
+			OnBnClickedButton1();
+			return TRUE;
+		}
+
+	}
+
+
+	return CDialog::PreTranslateMessage(pMsg);
 }

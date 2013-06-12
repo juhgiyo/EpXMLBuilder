@@ -18,6 +18,7 @@ public:
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+	virtual BOOL PreTranslateMessage(MSG* pMsg);
 
 	virtual BOOL OnInitDialog();
 	DECLARE_MESSAGE_MAP()
@@ -26,9 +27,9 @@ public:
 	CEdit m_tbValue;
 	CString m_nameString;
 	CString m_valueString;
+	bool m_isNode;
 	XNode *m_parentNode;
 	XAttr *m_attr;
-	CWnd *m_mainDlg;
 	afx_msg void OnBnClickedOk();
 	afx_msg void OnBnClickedButton1();
 };

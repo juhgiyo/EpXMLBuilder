@@ -6,6 +6,7 @@
 #include "EpXMLBuilder.h"
 #include "EpXMLBuilderDlg.h"
 
+
 #include <queue>
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -237,7 +238,7 @@ BOOL CEpXMLBuilderDlg::OnInitDialog()
 	m_cbNodeName.SetFocus();
 
 	m_tbRoot.SetWindowText(_T("Root"));
-	m_rootName=nodeFormat(_T("Root"),_T(""));
+	m_rootName=XMLUtil::NodeFormat(_T("Root"),_T(""));
 	m_selectedTreeItem=m_treeXML.InsertItem(m_rootName.GetString());
 	XNode *node= &m_xmlFile;
 	node->m_name=_T("Root");
@@ -335,8 +336,10 @@ void CEpXMLBuilderDlg::OnBnClickedBtnNew()
 	if(!continueOnChanged())
 		return;
 	m_xmlFile.Clear();
+	m_treeAttrMap.clear();
+	m_treeNodeMap.clear();
 	m_treeXML.DeleteAllItems();
-	m_rootName=nodeFormat(_T("Root"),_T(""));
+	m_rootName=XMLUtil::NodeFormat(_T("Root"),_T(""));
 	m_tbRoot.SetWindowText(_T("Root"));
 	m_tbRootValue.SetWindowText(_T(""));
 
@@ -351,18 +354,18 @@ void CEpXMLBuilderDlg::OnBnClickedBtnNew()
 
 HTREEITEM CEpXMLBuilderDlg::insertNode(CString nodeName, CString nodeValue,HTREEITEM insertUnder,XNode *node)
 {
-	CString treeElemString=nodeFormat(nodeName,nodeValue);
+	CString treeElemString=XMLUtil::NodeFormat(nodeName,nodeValue);
 	HTREEITEM insertedItem=m_treeXML.InsertItem(treeElemString.GetString(),insertUnder,TVI_LAST);
 	m_treeNodeMap[insertedItem]=node;
 
 	for (int attrTrav=0;attrTrav<node->m_attrs.size();attrTrav++)
 	{
-		CString treeElemString=attrFormat(node->m_attrs.at(attrTrav)->m_name,node->m_attrs.at(attrTrav)->m_value);
+		CString treeElemString=XMLUtil::AttrFormat(node->m_attrs.at(attrTrav)->m_name,node->m_attrs.at(attrTrav)->m_value);
 		HTREEITEM insertedAttrItem=m_treeXML.InsertItem(treeElemString.GetString(),insertedItem,TVI_LAST);
 		m_treeAttrMap[insertedAttrItem]=node->m_attrs.at(attrTrav);
 	}
-
-
+	if(node->m_attrs.size())
+		m_treeXML.Expand(insertedItem,TVE_EXPAND);
 	m_treeXML.Expand(insertUnder,TVE_EXPAND);
 	return insertedItem;
 }
@@ -427,11 +430,13 @@ void CEpXMLBuilderDlg::OnBnClickedBtnLoad()
 		return;
 	
 	m_xmlFile.Clear();
+	m_treeAttrMap.clear();
+	m_treeNodeMap.clear();
 	m_treeXML.DeleteAllItems();
 	m_xmlFile.LoadFromFile(fileName);
 
 	XNode * node=&m_xmlFile;
-	m_rootName=nodeFormat(node->m_name,node->m_value);
+	m_rootName=XMLUtil::NodeFormat(node->m_name,node->m_value);
 	m_selectedTreeItem=m_treeXML.InsertItem(m_rootName);
 	m_treeXML.SelectItem(m_selectedTreeItem);
 	m_tbRoot.SetWindowText(node->m_name.GetString());
@@ -439,7 +444,7 @@ void CEpXMLBuilderDlg::OnBnClickedBtnLoad()
 
 	for (int attrTrav=0;attrTrav<node->m_attrs.size();attrTrav++)
 	{
-		CString treeElemString=attrFormat(node->m_attrs.at(attrTrav)->m_name,node->m_attrs.at(attrTrav)->m_value);
+		CString treeElemString=XMLUtil::AttrFormat(node->m_attrs.at(attrTrav)->m_name,node->m_attrs.at(attrTrav)->m_value);
 		HTREEITEM insertedItem=m_treeXML.InsertItem(treeElemString.GetString(),m_selectedTreeItem,TVI_LAST);
 		m_treeAttrMap[insertedItem]=node->m_attrs.at(attrTrav);
 	}
@@ -672,135 +677,7 @@ void CEpXMLBuilderDlg::OnCbnEditchangeCbAttrValue()
 	m_cbAttrValue.SetEditSel(-1,valueTextString.GetLength());
 }
 
-CString CEpXMLBuilderDlg::nodeFormat(CString nodeName, CString nodeValue)
-{
-	nodeName=nodeName.Trim();
-	nodeValue=nodeValue.Trim();
-	CString treeElemString=_T("<name = ");
-	treeElemString.Append(nodeName);
-	if(nodeValue.GetLength()>0)
-	{
-		treeElemString.AppendFormat(_T(" value = "));
-		treeElemString.Append(nodeValue);
-	}
-	treeElemString.AppendFormat(_T(" >"));
-	return treeElemString;
 
-}
-
-CString CEpXMLBuilderDlg::attrFormat(CString attrName, CString attrValue)
-{
-	attrName=attrName.Trim();
-	attrValue=attrValue.Trim();
-	CString treeElemString=_T("<attrName = ");
-	treeElemString.Append(attrName);
-	if(attrValue.GetLength()>0)
-	{
-		treeElemString.AppendFormat(_T(" value = "));
-		treeElemString.Append(attrValue);
-	}
-	treeElemString.AppendFormat(_T(" >"));
-	return treeElemString;
-}
-
-ValidState CEpXMLBuilderDlg::validateName(CString name,CString &retMessage,XNode* parentNode,XAttr *checkAttr)
-{
-	retMessage=_T("");
-	CString errMessage,warningMessage;
-	errMessage=_T("");
-	warningMessage=_T("");
-
-	ValidState retVal=VALID_STATE_VALID;
-	if(XML_VALIDATOR_PROPERTIES_INSTANCE.ShouldCheckNumber())
-	{
-		TCHAR firstLetter=name.GetAt(0);
-		if(Locale::IsPunct(firstLetter)||Locale::IsDigit(firstLetter))
-		{
-			errMessage.Append(_T("- Name cannot start with a number or a punctuation.\n"));
-			retVal= VALID_STATE_INVALID;
-		}
-	}
-
-	if(XML_VALIDATOR_PROPERTIES_INSTANCE.ShouldCheckStartWithXML())
-	{
-		CString firstThreeWord=name;
-		firstThreeWord.Delete(3,firstThreeWord.GetLength()-3);
-		firstThreeWord=firstThreeWord.MakeLower();
-		if(firstThreeWord.Compare(_T("xml"))==0)
-		{
-			errMessage.Append(_T("- Name cannot start with \"xml\".\n"));
-			retVal= VALID_STATE_INVALID;
-		}
-	}
-	if(XML_VALIDATOR_PROPERTIES_INSTANCE.ShouldCheckContainSpace())
-	{
-		if(name.Find(_T(" "))!=-1)
-		{
-			errMessage.Append(_T("- Name cannot contain \"Space ( )\".\n"));
-			retVal= VALID_STATE_INVALID;
-		}
-		
-	}
-
-	if(XML_VALIDATOR_PROPERTIES_INSTANCE.ShouldCheckDuplicate() && parentNode)
-	{
-		for(XAttrs::iterator iter=parentNode->m_attrs.begin();iter!=parentNode->m_attrs.end();iter++)
-		{
-			if(checkAttr && (*iter)==checkAttr)
-				continue;
-			if((*iter)->m_name.Compare(name)==0)
-			{
-				errMessage.Append(_T("- A node cannot have attributes with same name.\n"));
-				retVal= VALID_STATE_INVALID;
-				break;
-			}
-		}
-	}
-
-	if(XML_VALIDATOR_PROPERTIES_INSTANCE.ShouldWarnContainDash())
-	{
-		if(name.Find(_T("-"))!=-1)
-		{
-			warningMessage.Append(_T("- Name should not contain \"Dash (-)\".\n"));
-			if(retVal==VALID_STATE_VALID)
-				retVal=VALID_STATE_WARNING;
-		}
-	}
-
-	if(XML_VALIDATOR_PROPERTIES_INSTANCE.ShouldWarnContainPeriod())
-	{
-		if(name.Find(_T("."))!=-1)
-		{
-			warningMessage.Append(_T("- Name should not contain \"Period (.)\".\n"));
-			if(retVal==VALID_STATE_VALID)
-				retVal=VALID_STATE_WARNING;
-		}
-	}
-
-	if(XML_VALIDATOR_PROPERTIES_INSTANCE.ShouldWarnContainColon())
-	{
-		if(name.Find(_T(":"))!=-1)
-		{
-			warningMessage.Append(_T("- Name should not contain \"Colon(:)\".\n"));
-			if(retVal==VALID_STATE_VALID)
-				retVal=VALID_STATE_WARNING;
-		}
-	}
-
-	if(errMessage.GetLength())
-	{
-		retMessage.Append(_T("Cannot proceed due to following:\n\n"));
-		retMessage.Append(errMessage);
-		retMessage.Append(_T("\n"));
-	}
-	if(warningMessage.GetLength())
-	{
-		retMessage.Append(_T("Warnings:\n\n"));
-		retMessage.Append(warningMessage);
-		retMessage.Append(_T("\n"));
-	}
-	return retVal;
-}
 
 void CEpXMLBuilderDlg::OnBnClickedButton1()
 {
@@ -820,7 +697,7 @@ void CEpXMLBuilderDlg::OnBnClickedButton1()
 	}
 
 	CString message;
-	ValidState state=validateName(rootName,message);
+	ValidState state=XMLUtil::ValidateName(rootName,message);
 	if(state==VALID_STATE_INVALID)
 	{
 		MessageBox(message,_T("Error"),MB_OK);
@@ -839,7 +716,7 @@ void CEpXMLBuilderDlg::OnBnClickedButton1()
 		}
 	}
 
-	m_rootName=nodeFormat(rootName,rootValue);
+	m_rootName=XMLUtil::NodeFormat(rootName,rootValue);
 	XNode *node= &m_xmlFile;
 	node->m_name=rootName;
 	node->m_value=rootValue;
@@ -871,7 +748,7 @@ void CEpXMLBuilderDlg::OnBnClickedBtnAdd()
 	}
 
 		
-	CString treeElemString=nodeFormat(nodeName,nodeValue);
+	CString treeElemString=XMLUtil::NodeFormat(nodeName,nodeValue);
 
 	TreeNodeMap::iterator nodeIter=m_treeNodeMap.find(m_selectedTreeItem);
 	if(nodeIter==m_treeNodeMap.end() && m_treeXML.GetItemText(m_selectedTreeItem).Compare(m_rootName)!=0)
@@ -881,7 +758,7 @@ void CEpXMLBuilderDlg::OnBnClickedBtnAdd()
 	}
 
 	CString message;
-	ValidState state=validateName(nodeName,message);
+	ValidState state=XMLUtil::ValidateName(nodeName,message);
 	if(state==VALID_STATE_INVALID)
 	{
 		MessageBox(message,_T("Error"),MB_OK);
@@ -956,9 +833,9 @@ void CEpXMLBuilderDlg::OnBnClickedBtnAddAttr()
 	CString message;
 	ValidState state;
 	if(nodeIter==m_treeNodeMap.end())
-		state=validateName(attrName,message,&m_xmlFile);
+		state=XMLUtil::ValidateName(attrName,message,false,&m_xmlFile);
 	else
-		state=validateName(attrName,message,nodeIter->second);
+		state=XMLUtil::ValidateName(attrName,message,false,nodeIter->second);
 	if(state==VALID_STATE_INVALID)
 	{
 		MessageBox(message,_T("Error"),MB_OK);
@@ -977,7 +854,7 @@ void CEpXMLBuilderDlg::OnBnClickedBtnAddAttr()
 		}
 	}
 
-	CString treeElemString=attrFormat(attrName,attrValue);
+	CString treeElemString=XMLUtil::AttrFormat(attrName,attrValue);
 	HTREEITEM insertedItem=m_treeXML.InsertItem(treeElemString.GetString(),m_selectedTreeItem,TVI_LAST);
 
 	if(m_treeXML.GetItemText(m_selectedTreeItem).Compare(m_rootName)==0)
@@ -1140,6 +1017,17 @@ BOOL CEpXMLBuilderDlg::PreTranslateMessage(MSG* pMsg)
 	}
 
 	if((pMsg->message == WM_KEYDOWN) && 
+		(pMsg->wParam == 0x43)) //C
+	{
+		if((GetKeyState(VK_CONTROL) & 0x8000))
+		{
+			OnBnClickedBtnConfigureValidator();
+			return TRUE;
+		}
+
+	}
+
+	if((pMsg->message == WM_KEYDOWN) && 
 		(pMsg->wParam == 0x4C)) //L
 	{
 		if((GetKeyState(VK_CONTROL) & 0x8000))
@@ -1162,7 +1050,7 @@ BOOL CEpXMLBuilderDlg::PreTranslateMessage(MSG* pMsg)
 	}
 
 	if((pMsg->message == WM_KEYDOWN) && 
-		(pMsg->wParam == 0x4E)) //V
+		(pMsg->wParam == 0x56)) //V
 	{
 		if((GetKeyState(VK_CONTROL) & 0x8000))
 		{
@@ -1171,6 +1059,7 @@ BOOL CEpXMLBuilderDlg::PreTranslateMessage(MSG* pMsg)
 		}
 
 	}
+
 
 	return CDialog::PreTranslateMessage(pMsg);
 }
@@ -1357,6 +1246,7 @@ void CEpXMLBuilderDlg::OnNMDblclkTree1(NMHDR *pNMHDR, LRESULT *pResult)
 	*pResult = 0;
 	if(m_selectedTreeItem==NULL)
 		return;
+
 	CString name;
 	CString value;
 	XNode *parentNode=NULL;
@@ -1392,7 +1282,7 @@ void CEpXMLBuilderDlg::OnNMDblclkTree1(NMHDR *pNMHDR, LRESULT *pResult)
 			attr=attrIter->second;
 			isNode=false;
 		}
-		
+
 	}
 	else
 	{
@@ -1405,41 +1295,46 @@ void CEpXMLBuilderDlg::OnNMDblclkTree1(NMHDR *pNMHDR, LRESULT *pResult)
 	m_nodeChangeDlg.m_nameString=name;
 	m_nodeChangeDlg.m_valueString=value;
 	m_nodeChangeDlg.m_parentNode=parentNode;
+	m_nodeChangeDlg.m_isNode=isNode;
 	m_nodeChangeDlg.m_attr=attr;
 	if(m_nodeChangeDlg.DoModal()==IDOK)
 	{
-		name=m_nodeChangeDlg.m_nameString;
-		value=m_nodeChangeDlg.m_valueString;
-
-		if(isNode)
-		{
-			CString updateString=nodeFormat(name,value);
-			m_treeXML.SetItemText(m_selectedTreeItem,updateString.GetString());
-			node->m_name=name;
-			node->m_value=value;
-			if(isRoot)
-			{
-				m_rootName=updateString;
-			}
-		}
-		else
-		{
-			CString updateString=attrFormat(name,value);
-			m_treeXML.SetItemText(m_selectedTreeItem,updateString.GetString());
-			attr->m_name=name;
-			attr->m_value=value;
-		}
+		NodeNameValueChange(m_selectedTreeItem,m_nodeChangeDlg.m_nameString,m_nodeChangeDlg.m_valueString,isRoot,isNode,node,attr);
 	}
-	m_treeXML.Expand(m_selectedTreeItem,TVE_TOGGLE);
-	m_treeXML.SortChildren(m_treeXML.GetParentItem(m_selectedTreeItem));
+	if(pNMHDR)
+		m_treeXML.Expand(m_selectedTreeItem,TVE_TOGGLE);
+	
 	
 }
-
-void CEpXMLBuilderDlg::OnBnClickedBtnValidate()
+void CEpXMLBuilderDlg::NodeNameValueChange(HTREEITEM treeItem,CString name,CString value,bool isRoot,bool isNode,XNode* node, XAttr *attr)
 {
-	// TODO: Add your control notification handler code here
+	if(isNode)
+	{
+		CString updateString=XMLUtil::NodeFormat(name,value);
+		m_treeXML.SetItemText(treeItem,updateString.GetString());
+		node->m_name=name;
+		node->m_value=value;
+		if(isRoot)
+		{
+			m_rootName=updateString;
+		}
+	}
+	else
+	{
+		CString updateString=XMLUtil::AttrFormat(name,value);
+		m_treeXML.SetItemText(treeItem,updateString.GetString());
+		attr->m_name=name;
+		attr->m_value=value;
+	}
+	m_isChanged=true;
+	m_treeXML.SortChildren(m_treeXML.GetParentItem(treeItem));
+}
+
+void CEpXMLBuilderDlg::ValidateXML(ResultMap & retResultMap)
+{
 	HTREEITEM item=m_treeXML.GetFirstVisibleItem();
-	
+	retResultMap.clear();
+
 
 	while(item!=NULL)
 	{
@@ -1491,20 +1386,34 @@ void CEpXMLBuilderDlg::OnBnClickedBtnValidate()
 			isNode=true;
 			name=nodeIter->second->m_name;
 			value=nodeIter->second->m_value;
+			parentNode=nodeIter->second->m_parent;
 			node=nodeIter->second;
 		}
-		
-		// textString
-		// Warning/Error Type
-		// Message
 
-		//isRoot
-		//isNode
-		//name
-		//value
-		//parentNode
-		//node
-		//attr
+		CString retMessage;
+		ValidState state= XMLUtil::ValidateName(name,retMessage,isNode,parentNode,attr);
+		if(state!=VALID_STATE_VALID)
+		{
+			XMLValidateResult result;
+			result.m_textString=textString;
+			result.m_message=retMessage;
+			result.m_isRoot=isRoot;
+			result.m_isNode=isNode;
+			result.m_name=name;
+			result.m_value=value;
+			result.m_parentNode=parentNode;
+			result.m_node=node;
+			result.m_attr=attr;
+			result.m_treeItem=item;
+			if(state==VALID_STATE_INVALID)
+				result.m_type=XML_VALIDATE_TYPE_ERROR;
+			else if(state==VALID_STATE_WARNING)
+				result.m_type=XML_VALIDATE_TYPE_WARNING;
+			else
+				result.m_type=XML_VALIDATE_TYPE_NONE;
+			retResultMap[parentNode].push_back(result);
+		}
+
 
 		HTREEITEM testItem=NULL;
 		testItem=m_treeXML.GetNextItem(item,TVGN_CHILD );
@@ -1512,35 +1421,20 @@ void CEpXMLBuilderDlg::OnBnClickedBtnValidate()
 			testItem=m_treeXML.GetNextItem(item,TVGN_NEXT );
 		item=testItem;
 	}
-
-
-// 	m_nodeChangeDlg.m_nameString=name;
-// 	m_nodeChangeDlg.m_valueString=value;
-// 	m_nodeChangeDlg.m_parentNode=parentNode;
-// 	if(m_nodeChangeDlg.DoModal()==IDOK)
-// 	{
-// 		name=m_nodeChangeDlg.m_nameString;
-// 		value=m_nodeChangeDlg.m_valueString;
-// 
-// 		if(isNode)
-// 		{
-// 			CString updateString=nodeFormat(name,value);
-// 			m_treeXML.SetItemText(m_selectedTreeItem,updateString.GetString());
-// 			node->m_name=name;
-// 			node->m_value=value;
-// 			if(isRoot)
-// 			{
-// 				m_rootName=updateString;
-// 			}
-// 		}
-// 		else
-// 		{
-// 			CString updateString=attrFormat(name,value);
-// 			m_treeXML.SetItemText(m_selectedTreeItem,updateString.GetString());
-// 			attr->m_name=name;
-// 			attr->m_value=value;
-// 		}
-// 	}
+}
+void CEpXMLBuilderDlg::OnBnClickedBtnValidate()
+{
+	// TODO: Add your control notification handler code here
+	ValidateXML(m_validateResultDlg.m_resultMap);
+	if(m_validateResultDlg.m_resultMap.size())
+	{
+		m_validateResultDlg.m_mainDlg=this;
+		m_validateResultDlg.DoModal();
+	}
+	else
+	{
+		MessageBox(_T("Validation test finished.\n\nXML is valid."),_T("Notice"),MB_OK);
+	}
 }
 
 

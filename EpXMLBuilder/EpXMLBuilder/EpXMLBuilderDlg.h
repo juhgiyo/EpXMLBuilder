@@ -10,17 +10,18 @@
 #include <vector>
 #include "afxcmn.h"
 #include "afxdtctl.h"
+
 #include "epPreTextParser.h"
 #include "epXMLValidatorProperties.h"
+#include "epXMLUtil.h"
+
 #include "ConfigureValidatorDlg.h"
 #include "NodeChangeDlg.h"
+#include "ValidateResultDlg.h"
+#include "epXMLValidateResult.h"
+
 using namespace epl;
 
-typedef enum _validState{
-	VALID_STATE_VALID=0,
-	VALID_STATE_INVALID,
-	VALID_STATE_WARNING,
-}ValidState;
 
 // CEpXMLBuilderDlg dialog
 class CEpXMLBuilderDlg : public CDialog
@@ -107,13 +108,8 @@ public:
 
 	bool continueOnChanged();
 	HTREEITEM insertNode(CString nodeName, CString nodeValue,HTREEITEM insertUnder,XNode *node);
-	CString nodeFormat(CString nodeName, CString nodeValue);
-	CString attrFormat(CString nodeName, CString nodeValue);
 	void traverseXMLAndInsert();
 
-	ValidState validateName(CString name,CString &retMessage,XNode* parentNode=NULL,XAttr *checkAttr=NULL);
-	
-	
 	bool m_isChanged;
 
 	typedef map<HTREEITEM,XNode*> TreeNodeMap;
@@ -138,11 +134,14 @@ public:
 
 	CConfigureValidatorDlg m_configureValidatorDlg;
 	CNodeChangeDlg m_nodeChangeDlg;
+	CValidateResultDlg m_validateResultDlg;
 	
 
 	afx_msg void OnNMDblclkTree1(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnBnClickedBtnValidate();
 	afx_msg void OnNMClickTree1(NMHDR *pNMHDR, LRESULT *pResult);
-//	afx_msg void OnTvnItemexpandingTree1(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnNMRClickTree1(NMHDR *pNMHDR, LRESULT *pResult);
+
+	void NodeNameValueChange(HTREEITEM treeItem,CString name,CString value,bool isRoot,bool isNode,XNode* node, XAttr *attr);
+	void ValidateXML(ResultMap & retResultMap);
 };
