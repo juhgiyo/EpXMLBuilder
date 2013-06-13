@@ -39,6 +39,7 @@ BEGIN_MESSAGE_MAP(CSearchResultDlg, CDialog)
 	ON_NOTIFY(NM_RCLICK, IDC_TREE_RESULT, &CSearchResultDlg::OnNMRClickTreeResult)
 	ON_NOTIFY(TVN_SELCHANGED, IDC_TREE_RESULT, &CSearchResultDlg::OnTvnSelchangedTreeResult)
 	ON_NOTIFY(TVN_KEYDOWN, IDC_TREE_RESULT, &CSearchResultDlg::OnTvnKeydownTreeResult)
+	ON_BN_CLICKED(IDC_BTN_DELETE, &CSearchResultDlg::OnBnClickedBtnDelete)
 END_MESSAGE_MAP()
 
 
@@ -120,7 +121,7 @@ void CSearchResultDlg::AddResultToTree(XMLSearchType type)
 		m_selectedTreeItem=childItem;
 	}
 
-
+	m_treeSearchResult.SetFocus();
 }
 
 // CSearchResultDlg message handlers
@@ -295,5 +296,18 @@ void CSearchResultDlg::OnTvnKeydownTreeResult(NMHDR *pNMHDR, LRESULT *pResult)
 			AddResultToTree((XMLSearchType)m_cbbFilter.GetCurSel());
 		}
 
+	}
+}
+
+void CSearchResultDlg::OnBnClickedBtnDelete()
+{
+	// TODO: Add your control notification handler code here
+	TreeSearchResultMap::iterator iter=m_treeSearchResultMap.find(m_selectedTreeItem);
+	if(iter!=m_treeSearchResultMap.end())
+	{
+		((CEpXMLBuilderDlg*)m_mainDlg)->DeleteTreeItem(iter->second.m_treeItem);
+
+		((CEpXMLBuilderDlg*)m_mainDlg)->SearchXML(m_searchType,m_searchName,m_searchValue,m_searchMatchCase,m_searchMatchWholeWord,m_searchResultMap);
+		AddResultToTree((XMLSearchType)m_cbbFilter.GetCurSel());
 	}
 }

@@ -38,6 +38,7 @@ BEGIN_MESSAGE_MAP(CValidateResultDlg, CDialog)
 	ON_BN_CLICKED(IDC_BTN_REVALIDATE, &CValidateResultDlg::OnBnClickedBtnRevalidate)
 	ON_BN_CLICKED(IDC_BTN_CONFIGUREVALIDATOR, &CValidateResultDlg::OnBnClickedBtnConfigurevalidator)
 	ON_NOTIFY(TVN_KEYDOWN, IDC_TREE_RESULT, &CValidateResultDlg::OnTvnKeydownTreeResult)
+	ON_BN_CLICKED(IDC_BTN_DELETE, &CValidateResultDlg::OnBnClickedBtnDelete)
 END_MESSAGE_MAP()
 
 
@@ -52,7 +53,6 @@ BOOL CValidateResultDlg::OnInitDialog()
 	m_cbbFilter.AddString(_T("Warning"));
 	m_cbbFilter.SetCurSel(0);
 	AddResultToTree(FILTER_TYPE_ALL);
-	m_treeResult.SetFocus();
 	return FALSE;
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -106,7 +106,7 @@ void CValidateResultDlg::AddResultToTree(FilterType type)
 		m_treeResult.SelectItem(childItem);
 		m_selectedTreeItem=childItem;
 	}
-	
+	m_treeResult.SetFocus();
 
 }
 void CValidateResultDlg::OnTvnSelchangedTreeResult(NMHDR *pNMHDR, LRESULT *pResult)
@@ -289,5 +289,18 @@ void CValidateResultDlg::OnTvnKeydownTreeResult(NMHDR *pNMHDR, LRESULT *pResult)
 			AddResultToTree((FilterType)m_cbbFilter.GetCurSel());
 		}
 		
+	}
+}
+
+void CValidateResultDlg::OnBnClickedBtnDelete()
+{
+	// TODO: Add your control notification handler code here
+	TreeResultMap::iterator iter=m_treeResultMap.find(m_selectedTreeItem);
+	if(iter!=m_treeResultMap.end())
+	{
+		((CEpXMLBuilderDlg*)m_mainDlg)->DeleteTreeItem(iter->second.m_treeItem);
+
+		((CEpXMLBuilderDlg*)m_mainDlg)->ValidateXML(m_resultMap);
+		AddResultToTree((FilterType)m_cbbFilter.GetCurSel());
 	}
 }

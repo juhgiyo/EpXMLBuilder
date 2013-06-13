@@ -57,4 +57,5 @@ public:
 	bool m_searchMatchCase;
 	bool m_searchMatchWholeWord;
 	afx_msg void OnTvnKeydownTreeResult(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnBnClickedBtnDelete();
 };

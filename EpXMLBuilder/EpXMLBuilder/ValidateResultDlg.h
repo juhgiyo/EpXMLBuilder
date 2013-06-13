@@ -64,4 +64,5 @@ public:
 	afx_msg void OnBnClickedBtnRevalidate();
 	afx_msg void OnBnClickedBtnConfigurevalidator();
 	afx_msg void OnTvnKeydownTreeResult(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnBnClickedBtnDelete();
 };
