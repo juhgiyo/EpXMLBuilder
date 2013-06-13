@@ -9,6 +9,7 @@
 
 #include <queue>
 #include "afxwin.h"
+#include "afxcmn.h"
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -33,6 +34,8 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	CEdit m_tbLicense;
+	CLinkCtrl m_webLink;
+	afx_msg void OnNMClickSyslink1(NMHDR *pNMHDR, LRESULT *pResult);
 };
 
 CAboutDlg::CAboutDlg() : CDialog(CAboutDlg::IDD)
@@ -43,6 +46,7 @@ void CAboutDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_EDIT1, m_tbLicense);
+	DDX_Control(pDX, IDC_SYSLINK1, m_webLink);
 }
 
 BOOL CAboutDlg::OnInitDialog()
@@ -67,7 +71,20 @@ BOOL CAboutDlg::OnInitDialog()
 
 }
 BEGIN_MESSAGE_MAP(CAboutDlg, CDialog)
+	ON_NOTIFY(NM_CLICK, IDC_SYSLINK1, &CAboutDlg::OnNMClickSyslink1)
 END_MESSAGE_MAP()
+
+void CAboutDlg::OnNMClickSyslink1(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	// TODO: Add your control notification handler code here
+	*pResult = 0;
+	CString strUrl=_T("");
+	CLinkCtrl* pLinkCtrl=(CLinkCtrl*)GetDlgItem(IDC_SYSLINK1);
+	pLinkCtrl->GetItemUrl(0,strUrl);
+	::ShellExecute(NULL,TEXT("open"),strUrl,NULL,NULL,SW_SHOW);
+
+
+}
 
 
 // CEpXMLBuilderDlg dialog
@@ -1667,3 +1684,4 @@ void CEpXMLBuilderDlg::OnBnClickedBtnSearch()
 	}
 	
 }
+
