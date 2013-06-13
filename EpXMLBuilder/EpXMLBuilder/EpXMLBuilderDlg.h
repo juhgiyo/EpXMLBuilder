@@ -150,6 +150,7 @@ public:
 	void NodeNameValueChange(HTREEITEM treeItem,CString name,CString value,bool isRoot,bool isNode,XNode* node, XAttr *attr);
 	void ValidateXML(ResultMap & retResultMap);
 	void SearchXML(XMLSearchType searchType,CString iName, CString iValue, bool isMatchCase,bool isMatchWholeWord,SearchResultMap & retResultMap);
+	void DeleteTreeItem(HTREEITEM &treeItem);
 	HTREEITEM GetNextItem(HTREEITEM item);
 	
 };

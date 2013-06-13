@@ -907,21 +907,21 @@ void CEpXMLBuilderDlg::OnBnClickedBtnAddAttr()
 	m_treeXML.SortChildren(m_selectedTreeItem);
 }
 
-void CEpXMLBuilderDlg::OnBnClickedBtnDelete()
+void CEpXMLBuilderDlg::DeleteTreeItem(HTREEITEM &treeItem)
 {
-	if(m_selectedTreeItem==NULL)
+	if(treeItem==NULL)
 	{
 		MessageBox(_T("Node/Attribute is not selected from the tree!\n\nPlease select a node or an attribute to delete."),_T("Error"),MB_OK);
 		return;
 	}
-	if(m_treeXML.GetItemText(m_selectedTreeItem).Compare(m_rootName)==0)
+	if(m_treeXML.GetItemText(treeItem).Compare(m_rootName)==0)
 	{
 		MessageBox(_T("Root node cannot be deleted!\n\nPlease select other node to delete."),_T("Error"),MB_OK);
 		return;
 	}
 	if(MessageBox(_T("Do you really want to delete the node/attribute and its sub-nodes?"),_T("Warning"),MB_YESNO)==IDNO)
 		return;
-	TreeNodeMap::iterator iter=m_treeNodeMap.find(m_selectedTreeItem);
+	TreeNodeMap::iterator iter=m_treeNodeMap.find(treeItem);
 	if(iter!=m_treeNodeMap.end())
 	{
 		iter->second->m_parent->RemoveChild(iter->second);
@@ -929,7 +929,7 @@ void CEpXMLBuilderDlg::OnBnClickedBtnDelete()
 	}
 	else
 	{
-		TreeAttrMap::iterator attrIter=m_treeAttrMap.find(m_selectedTreeItem);
+		TreeAttrMap::iterator attrIter=m_treeAttrMap.find(treeItem);
 		if(attrIter!=m_treeAttrMap.end())
 		{
 			attrIter->second->m_parent->RemoveAttr(attrIter->second);
@@ -940,17 +940,21 @@ void CEpXMLBuilderDlg::OnBnClickedBtnDelete()
 			EP_ASSERT(0);
 		}
 	}
-	
 
-	HTREEITEM prevItem=m_treeXML.GetPrevVisibleItem(m_selectedTreeItem);
-	m_treeXML.DeleteItem(m_selectedTreeItem);
 
-	
+	HTREEITEM prevItem=m_treeXML.GetPrevVisibleItem(treeItem);
+	m_treeXML.DeleteItem(treeItem);
+
+
 	m_treeXML.SelectItem(prevItem);
 
 	m_isChanged=true;
-	m_selectedTreeItem=prevItem;
+	treeItem=prevItem;
+}
 
+void CEpXMLBuilderDlg::OnBnClickedBtnDelete()
+{
+	DeleteTreeItem(m_selectedTreeItem);
 	m_treeXML.SetFocus();
 }
 
@@ -1092,7 +1096,7 @@ BOOL CEpXMLBuilderDlg::PreTranslateMessage(MSG* pMsg)
 	}
 
 	if((pMsg->message == WM_KEYDOWN) && 
-		(pMsg->wParam == 0x56)) //V
+		(pMsg->wParam == 0x51)) //Q
 	{
 		if((GetKeyState(VK_CONTROL) & 0x8000))
 		{
@@ -1371,6 +1375,8 @@ void CEpXMLBuilderDlg::NodeNameValueChange(HTREEITEM treeItem,CString name,CStri
 	m_isChanged=true;
 	m_treeXML.SortChildren(m_treeXML.GetParentItem(treeItem));
 }
+
+
 
 void CEpXMLBuilderDlg::ValidateXML(ResultMap & retResultMap)
 {

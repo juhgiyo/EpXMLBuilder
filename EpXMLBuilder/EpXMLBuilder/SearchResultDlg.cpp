@@ -38,6 +38,7 @@ BEGIN_MESSAGE_MAP(CSearchResultDlg, CDialog)
 	ON_NOTIFY(NM_DBLCLK, IDC_TREE_RESULT, &CSearchResultDlg::OnNMDblclkTreeResult)
 	ON_NOTIFY(NM_RCLICK, IDC_TREE_RESULT, &CSearchResultDlg::OnNMRClickTreeResult)
 	ON_NOTIFY(TVN_SELCHANGED, IDC_TREE_RESULT, &CSearchResultDlg::OnTvnSelchangedTreeResult)
+	ON_NOTIFY(TVN_KEYDOWN, IDC_TREE_RESULT, &CSearchResultDlg::OnTvnKeydownTreeResult)
 END_MESSAGE_MAP()
 
 
@@ -273,4 +274,26 @@ BOOL CSearchResultDlg::PreTranslateMessage(MSG* pMsg)
 	}
 
 	return CDialog::PreTranslateMessage(pMsg);
+}
+void CSearchResultDlg::OnTvnKeydownTreeResult(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	LPNMTVKEYDOWN pTVKeyDown = reinterpret_cast<LPNMTVKEYDOWN>(pNMHDR);
+	// TODO: Add your control notification handler code here
+	*pResult = 0;
+
+	NMTVKEYDOWN * pKey = (NMTVKEYDOWN *)pNMHDR;
+
+	HTREEITEM hSel = m_treeSearchResult.GetSelectedItem();
+	if (pKey->wVKey == VK_DELETE && hSel != NULL)
+	{
+		TreeSearchResultMap::iterator iter=m_treeSearchResultMap.find(hSel);
+		if(iter!=m_treeSearchResultMap.end())
+		{
+			((CEpXMLBuilderDlg*)m_mainDlg)->DeleteTreeItem(iter->second.m_treeItem);
+
+			((CEpXMLBuilderDlg*)m_mainDlg)->SearchXML(m_searchType,m_searchName,m_searchValue,m_searchMatchCase,m_searchMatchWholeWord,m_searchResultMap);
+			AddResultToTree((XMLSearchType)m_cbbFilter.GetCurSel());
+		}
+
+	}
 }

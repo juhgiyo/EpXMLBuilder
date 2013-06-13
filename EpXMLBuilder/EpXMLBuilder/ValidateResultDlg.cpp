@@ -37,6 +37,7 @@ BEGIN_MESSAGE_MAP(CValidateResultDlg, CDialog)
 	ON_BN_CLICKED(IDOK, &CValidateResultDlg::OnBnClickedOk)
 	ON_BN_CLICKED(IDC_BTN_REVALIDATE, &CValidateResultDlg::OnBnClickedBtnRevalidate)
 	ON_BN_CLICKED(IDC_BTN_CONFIGUREVALIDATOR, &CValidateResultDlg::OnBnClickedBtnConfigurevalidator)
+	ON_NOTIFY(TVN_KEYDOWN, IDC_TREE_RESULT, &CValidateResultDlg::OnTvnKeydownTreeResult)
 END_MESSAGE_MAP()
 
 
@@ -233,7 +234,7 @@ BOOL CValidateResultDlg::PreTranslateMessage(MSG* pMsg)
 	}
 
 // 	if((pMsg->message == WM_KEYDOWN) && 
-// 		(pMsg->wParam == 0x56)) //V
+// 		(pMsg->wParam == 0x51)) //Q
 // 	{
 // 		if((GetKeyState(VK_CONTROL) & 0x8000))
 // 		{
@@ -265,5 +266,28 @@ void CValidateResultDlg::OnBnClickedBtnConfigurevalidator()
 	if(configureValidatorDlg.DoModal()==IDOK)
 	{
 		OnBnClickedBtnRevalidate();
+	}
+}
+
+void CValidateResultDlg::OnTvnKeydownTreeResult(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	LPNMTVKEYDOWN pTVKeyDown = reinterpret_cast<LPNMTVKEYDOWN>(pNMHDR);
+	// TODO: Add your control notification handler code here
+	*pResult = 0;
+
+	NMTVKEYDOWN * pKey = (NMTVKEYDOWN *)pNMHDR;
+
+	HTREEITEM hSel = m_treeResult.GetSelectedItem();
+	if (pKey->wVKey == VK_DELETE && hSel != NULL)
+	{
+		TreeResultMap::iterator iter=m_treeResultMap.find(hSel);
+		if(iter!=m_treeResultMap.end())
+		{
+			((CEpXMLBuilderDlg*)m_mainDlg)->DeleteTreeItem(iter->second.m_treeItem);
+
+			((CEpXMLBuilderDlg*)m_mainDlg)->ValidateXML(m_resultMap);
+			AddResultToTree((FilterType)m_cbbFilter.GetCurSel());
+		}
+		
 	}
 }

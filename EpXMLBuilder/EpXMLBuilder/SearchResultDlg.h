@@ -56,4 +56,5 @@ public:
 	XMLSearchType m_searchType;
 	bool m_searchMatchCase;
 	bool m_searchMatchWholeWord;
+	afx_msg void OnTvnKeydownTreeResult(NMHDR *pNMHDR, LRESULT *pResult);
 };
