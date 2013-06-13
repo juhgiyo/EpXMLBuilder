@@ -7,8 +7,10 @@ FEATURES
 
 * Simple Graphical User Interfaced XML Editor
 - Add/Remove the nodes/attributes
-- Change the root node's name or value
-- Load from or Export to XML files
+- Modify the nodes/attributes' name or value
+- Load/Export from/to XML files
+- Modifiable validation check
+- Search nodes or attributes
 
 USAGE
 
