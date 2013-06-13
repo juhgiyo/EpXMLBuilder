@@ -12,6 +12,11 @@ public:
 	{
 		return x.Compare(y)<0;
 	}
+
+	bool operator()(const CString x, const CString y) const
+	{
+		return x.Compare(y)<0;
+	}
 };
 
 typedef map<CString,vector<CString>,CStringComparer > NodeStringMap;
