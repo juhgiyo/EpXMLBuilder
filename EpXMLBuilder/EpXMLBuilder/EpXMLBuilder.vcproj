@@ -68,7 +68,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="EpLibraryU_D90.lib  UxTheme.lib"
+				AdditionalDependencies="EpLibraryU_D90.lib "
 				LinkIncremental="2"
 				AdditionalLibraryDirectories=".\Libs"
 				GenerateDebugInformation="true"
@@ -151,7 +151,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="EpLibraryU90.lib  UxTheme.lib"
+				AdditionalDependencies="EpLibraryU90.lib"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories=".\Libs"
 				GenerateDebugInformation="true"
