@@ -253,7 +253,7 @@ BOOL CSearchResultDlg::PreTranslateMessage(MSG* pMsg)
 	if((pMsg->message == WM_KEYDOWN) && 
 		(pMsg->wParam == 0x43)) //C
 	{
-		if((GetKeyState(VK_SHIFT) & 0x8000))
+		if((GetKeyState(VK_SHIFT) & 0x8000)&& (GetKeyState(VK_CONTROL) & 0x8000))
 		{
 			OnBnClickedBtnConfigurevalidator();
 			return TRUE;
@@ -262,9 +262,9 @@ BOOL CSearchResultDlg::PreTranslateMessage(MSG* pMsg)
 	}
 
 	if((pMsg->message == WM_KEYDOWN) && 
-		(pMsg->wParam == 0x53)) //S
+		(pMsg->wParam == 0x45)) // E
 	{
-		if((GetKeyState(VK_SHIFT) & 0x8000))
+		if((GetKeyState(VK_CONTROL) & 0x8000))
 		{
 			OnBnClickedBtnSearch();
 			return TRUE;

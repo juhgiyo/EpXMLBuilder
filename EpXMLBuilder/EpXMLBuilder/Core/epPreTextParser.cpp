@@ -61,7 +61,7 @@ bool PreTestParser::Parse(TextFile &file,NodeStringMap &map,NodeStringMap &attrM
 		{
 			curNode=cCurLine;
 			iter=attrMap.find(curNode);
-			if(iter==map.end())
+			if(iter==attrMap.end())
 			{
 				attrMap.insert(std::pair<CString,vector<CString> >(curNode,vector<CString>()));
 				iter=attrMap.find(curNode);
