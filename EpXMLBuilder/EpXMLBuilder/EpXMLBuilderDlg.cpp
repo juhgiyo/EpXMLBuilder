@@ -8,6 +8,7 @@
 
 
 #include <queue>
+#include "afxwin.h"
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -26,9 +27,12 @@ public:
 	protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
+	virtual BOOL OnInitDialog();
 // Implementation
 protected:
 	DECLARE_MESSAGE_MAP()
+public:
+	CEdit m_tbLicense;
 };
 
 CAboutDlg::CAboutDlg() : CDialog(CAboutDlg::IDD)
@@ -38,8 +42,30 @@ CAboutDlg::CAboutDlg() : CDialog(CAboutDlg::IDD)
 void CAboutDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
+	DDX_Control(pDX, IDC_EDIT1, m_tbLicense);
 }
 
+BOOL CAboutDlg::OnInitDialog()
+{
+	CDialog::OnInitDialog();
+
+	HRSRC hres= FindResource(NULL,_T("#130"),_T("TEXT"));
+	if(hres!=0)
+	{
+		HGLOBAL    hbytes = LoadResource(NULL, hres);
+
+		// Lock the resource
+		LPVOID pdata = LockResource(hbytes);
+
+		//Convert the resource text file to data we can use
+		EpWString licenseWString=System::MultiByteToWideChar((char*)pdata);
+		CString licenseString = licenseWString.c_str();
+		UnlockResource(hbytes);
+		m_tbLicense.SetWindowText(licenseString.GetString());
+	}
+	return TRUE;
+
+}
 BEGIN_MESSAGE_MAP(CAboutDlg, CDialog)
 END_MESSAGE_MAP()
 
@@ -117,6 +143,7 @@ ON_BN_CLICKED(IDC_BTN_VALIDATE, &CEpXMLBuilderDlg::OnBnClickedBtnValidate)
 ON_NOTIFY(NM_CLICK, IDC_TREE1, &CEpXMLBuilderDlg::OnNMClickTree1)
 //ON_NOTIFY(TVN_ITEMEXPANDING, IDC_TREE1, &CEpXMLBuilderDlg::OnTvnItemexpandingTree1)
 ON_NOTIFY(NM_RCLICK, IDC_TREE1, &CEpXMLBuilderDlg::OnNMRClickTree1)
+ON_BN_CLICKED(IDC_BTN_SEARCH, &CEpXMLBuilderDlg::OnBnClickedBtnSearch)
 END_MESSAGE_MAP()
 
 
@@ -249,6 +276,12 @@ BOOL CEpXMLBuilderDlg::OnInitDialog()
 	m_cbEncoding.AddString(_T("UTF-16"));
 	m_cbEncoding.AddString(_T("UTF-8"));
 	m_cbEncoding.SetCurSel(0);
+
+	// Set Search Dialog
+
+	m_searchDlg.m_searchType=XML_SEARCH_TYPE_ALL;
+	m_searchDlg.m_matchWholeWord=false;
+	m_searchDlg.m_matchCase=false;
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -994,6 +1027,18 @@ BOOL CEpXMLBuilderDlg::PreTranslateMessage(MSG* pMsg)
 // 		}
 // 	}
 	
+
+	if((pMsg->message == WM_KEYDOWN) && 
+		(pMsg->wParam == 0x43)) //C
+	{
+		if((GetKeyState(VK_SHIFT) & 0x8000))
+		{
+			OnBnClickedBtnConfigureValidator();
+			return TRUE;
+		}
+
+	}
+
 	if((pMsg->message == WM_KEYDOWN) && 
 		(pMsg->wParam == 0x53)) //S
 	{
@@ -1003,29 +1048,19 @@ BOOL CEpXMLBuilderDlg::PreTranslateMessage(MSG* pMsg)
 			return TRUE;
 		}
 
-	}
-
-	if((pMsg->message == WM_KEYDOWN) && 
-		(pMsg->wParam == 0x53)) //S
-	{
 		if((GetKeyState(VK_CONTROL) & 0x8000))
 		{
 			OnBnClickedBtnSave();
 			return TRUE;
 		}
-
-	}
-
-	if((pMsg->message == WM_KEYDOWN) && 
-		(pMsg->wParam == 0x43)) //C
-	{
-		if((GetKeyState(VK_CONTROL) & 0x8000))
+		if((GetKeyState(VK_SHIFT) & 0x8000))
 		{
-			OnBnClickedBtnConfigureValidator();
+			OnBnClickedBtnSearch();
 			return TRUE;
 		}
 
 	}
+
 
 	if((pMsg->message == WM_KEYDOWN) && 
 		(pMsg->wParam == 0x4C)) //L
@@ -1415,12 +1450,162 @@ void CEpXMLBuilderDlg::ValidateXML(ResultMap & retResultMap)
 		}
 
 
-		HTREEITEM testItem=NULL;
-		testItem=m_treeXML.GetNextItem(item,TVGN_CHILD );
-		if(!testItem)
-			testItem=m_treeXML.GetNextItem(item,TVGN_NEXT );
-		item=testItem;
+		item=GetNextItem(item);
 	}
+}
+
+
+void CEpXMLBuilderDlg::SearchXML(XMLSearchType searchType, CString iName, CString iValue, bool isMatchCase,bool isMatchWholeWord,SearchResultMap & retResultMap)
+{
+	HTREEITEM item=m_treeXML.GetFirstVisibleItem();
+	retResultMap.clear();
+
+
+	while(item!=NULL)
+	{
+		CString name=_T("");
+		CString value=_T("");
+
+		CString textString=m_treeXML.GetItemText(item);
+		TreeAttrMap::iterator attrIter=m_treeAttrMap.find(item);
+		TreeNodeMap::iterator nodeIter=m_treeNodeMap.find(item);
+
+		bool isRoot=false;
+		bool isNode=true;
+		XNode *parentNode=NULL;
+
+		XNode *node=NULL;
+		XAttr *attr=NULL;
+
+		if(nodeIter==m_treeNodeMap.end())
+		{
+			if(attrIter==m_treeAttrMap.end())
+			{
+				if(textString.Compare(m_rootName)!=0)
+				{
+					EP_ASSERT(0);
+					return;
+				}
+				else
+				{
+					isRoot=true;
+					isNode=true;
+					name=m_xmlFile.m_name;
+					value=m_xmlFile.m_value;
+					node=&m_xmlFile;
+				}
+			}
+			else
+			{
+				isRoot=false;
+				isNode=false;
+				name=attrIter->second->m_name;
+				value=attrIter->second->m_value;
+				parentNode=attrIter->second->m_parent;
+				attr=attrIter->second;
+			}
+		}
+		else
+		{
+			isRoot=false;
+			isNode=true;
+			name=nodeIter->second->m_name;
+			value=nodeIter->second->m_value;
+			parentNode=nodeIter->second->m_parent;
+			node=nodeIter->second;
+		}
+
+
+		XMLSearchResult result;
+		result.m_textString=textString;
+		result.m_isRoot=isRoot;
+		result.m_isNode=isNode;
+		result.m_name=name;
+		result.m_value=value;
+		result.m_parentNode=parentNode;
+		result.m_node=node;
+		result.m_attr=attr;
+		result.m_treeItem=item;
+
+		if(searchType==XML_SEARCH_TYPE_ALL
+			|| searchType==XML_SEARCH_TYPE_NODE && isNode
+			|| searchType==XML_SEARCH_TYPE_ATTRIBUTE && !isNode 
+			)
+		{
+			CString nodeName=result.m_name;
+			CString searchNodeName=iName;
+			CString valueName=result.m_value;
+			CString searchValueName=iValue;
+			if(!isMatchCase)
+			{
+				nodeName=nodeName.MakeLower();
+				searchNodeName=searchNodeName.MakeLower();
+				valueName=valueName.MakeLower();
+				searchValueName=searchValueName.MakeLower();
+			}
+
+
+
+			if(searchNodeName.GetLength()>0)
+			{
+				if( (!isMatchWholeWord && nodeName.Find(searchNodeName.GetString())!=-1)
+					||(isMatchWholeWord && nodeName.Compare(searchNodeName.GetString())==0))
+				{
+					if(searchValueName.GetLength()>0)
+					{
+						if((!isMatchWholeWord && valueName.Find(searchValueName.GetString())!=-1) 
+							|| (isMatchWholeWord && valueName.Compare(searchValueName.GetString())==0))
+						{
+							retResultMap[parentNode].push_back(result);
+						}
+					}	
+					else
+					{
+						retResultMap[parentNode].push_back(result);
+					}
+				}
+				
+			}
+			else
+			{
+				if(searchValueName.GetLength()>0)
+				{
+					if((!isMatchWholeWord && valueName.Find(searchValueName.GetString())!=-1) 
+						|| (isMatchWholeWord && valueName.Compare(searchValueName.GetString())==0))
+						retResultMap[parentNode].push_back(result);
+				}	
+				else
+				{
+					retResultMap[parentNode].push_back(result);
+				}
+			}
+		}
+		
+
+		item=GetNextItem(item);
+	}
+}
+
+
+HTREEITEM CEpXMLBuilderDlg::GetNextItem(HTREEITEM item)
+{
+	HTREEITEM origItem=item;
+	HTREEITEM testItem=NULL;
+	testItem=m_treeXML.GetNextItem(origItem,TVGN_CHILD );
+	if(!testItem)
+	{
+		testItem=m_treeXML.GetNextItem(origItem,TVGN_NEXT );
+		while(!testItem)
+		{
+			testItem=m_treeXML.GetNextItem(origItem,TVGN_PARENT);
+			if(testItem==NULL)
+				break;
+			origItem=testItem;
+			testItem=m_treeXML.GetNextItem(origItem,TVGN_NEXT );
+		}
+	}
+	item=testItem;
+	return item;
 }
 void CEpXMLBuilderDlg::OnBnClickedBtnValidate()
 {
@@ -1433,8 +1618,39 @@ void CEpXMLBuilderDlg::OnBnClickedBtnValidate()
 	}
 	else
 	{
-		MessageBox(_T("Validation test finished.\n\nXML is valid."),_T("Notice"),MB_OK);
+		MessageBox(_T("Validation test is finished.\n\nXML is valid."),_T("Notice"),MB_OK);
 	}
 }
 
 
+
+void CEpXMLBuilderDlg::OnBnClickedBtnSearch()
+{
+	// TODO: Add your control notification handler code here
+
+	if(m_searchDlg.DoModal()==IDOK)
+	{
+		CString name=m_searchDlg.m_name;
+		CString value=m_searchDlg.m_value;
+		XMLSearchType searchType=m_searchDlg.m_searchType;
+		bool searchMatchCase=m_searchDlg.m_matchCase;
+		bool searchMatchWholeWord=m_searchDlg.m_matchWholeWord;
+		SearchXML(searchType,name,value,searchMatchCase,searchMatchWholeWord,m_searchResultDlg.m_searchResultMap);
+		
+		if(m_searchResultDlg.m_searchResultMap.size())
+		{
+			m_searchResultDlg.m_searchValue=value;
+			m_searchResultDlg.m_searchName=name;
+			m_searchResultDlg.m_searchType=searchType;
+			m_searchResultDlg.m_searchMatchCase=searchMatchCase;
+			m_searchResultDlg.m_searchMatchWholeWord=searchMatchWholeWord;
+			m_searchResultDlg.m_mainDlg=this;
+			m_searchResultDlg.DoModal();
+		}
+		else
+		{
+			MessageBox(_T("Searching is finished.\n\nNo element found."),_T("Notice"),MB_OK);
+		}
+	}
+	
+}

@@ -37,6 +37,48 @@ CString XMLUtil::AttrFormat(CString attrName, CString attrValue)
 	treeElemString.AppendFormat(_T(" >"));
 	return treeElemString;
 }
+
+CString XMLUtil::SearchKeyFormat(XMLSearchType searchType,CString name,CString value,bool isMatchCase,bool isMatchWholeWord)
+{
+	CString retString=_T("Search finished! < ");
+
+	retString.Append(_T("Type: "));
+	switch(searchType)
+	{
+	case XML_SEARCH_TYPE_ALL:
+		retString.Append(_T("All (Node + Attribute)"));
+		break;
+	case XML_SEARCH_TYPE_NODE:
+		retString.Append(_T("Nodes Only"));
+		break;
+	case XML_SEARCH_TYPE_ATTRIBUTE:
+		retString.Append(_T("Attributes Only"));
+		break;
+	}
+
+	if(name.GetLength())
+	{
+		retString.Append(_T("  /  Name: "));
+		retString.Append(name);
+	}
+	
+	if(value.GetLength())
+	{
+		retString.Append(_T("  /  Value: "));
+		retString.Append(value);
+	}
+	
+	if(isMatchCase)
+	{
+		retString.Append(_T("  /  Match case"));
+	}
+	if(isMatchWholeWord)
+	{
+		retString.Append(_T("  /  Match whole word"));
+	}
+	retString.Append(_T(" >"));
+	return retString;
+}
 CString XMLUtil::ResultFormat(CString name, CString value,bool isNode, XMLValidateType type)
 {
 	CString retString;

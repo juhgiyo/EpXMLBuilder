@@ -75,7 +75,8 @@ void CValidateResultDlg::AddResultToTree(FilterType type)
 		}
 		else
 		{
-			parentString=XMLUtil::NodeFormat(_T("Root"),_T(""));
+			//parentString=XMLUtil::NodeFormat(_T("Root"),_T(""));
+			parentString=_T("Root Element");
 		}
 		HTREEITEM treeItem=m_treeResult.InsertItem(parentString);
 		for(vector<XMLValidateResult>::iterator listTrav=iter->second.begin();listTrav!=iter->second.end();listTrav++)
@@ -223,7 +224,7 @@ BOOL CValidateResultDlg::PreTranslateMessage(MSG* pMsg)
 	if((pMsg->message == WM_KEYDOWN) && 
 		(pMsg->wParam == 0x43)) //C
 	{
-		if((GetKeyState(VK_CONTROL) & 0x8000))
+		if((GetKeyState(VK_SHIFT) & 0x8000))
 		{
 			OnBnClickedBtnConfigurevalidator();
 			return TRUE;

@@ -10,8 +10,11 @@
 #define IDD_NODE_CHANGE                 104
 #define IDR_HTML_NODECHANGEDLG          105
 #define IDD_VALIDATE_RESULT             105
+#define IDD_SEARCH_RESULT               106
+#define IDD_SEARCH                      107
 #define IDR_MAINFRAME                   128
 #define IDB_BITMAP1                     129
+#define IDR_TEXT1                       130
 #define IDC_TREE1                       1000
 #define IDC_BTN_ADD                     1001
 #define IDC_BTN_DELETE                  1002
@@ -43,6 +46,7 @@
 #define IDC_COMBO1                      1026
 #define IDC_CB_ENCODING                 1026
 #define IDC_CB_FILTER                   1026
+#define IDC_CBB_OPTION                  1026
 #define IDC_BTN_CONFIGURE_VALIDATOR     1027
 #define IDC_CB_NUMBER                   1028
 #define IDC_BTN_VALIDATE                1028
@@ -59,14 +63,20 @@
 #define IDC_TB_MESSAGE                  1036
 #define IDC_BUTTON3                     1037
 #define IDC_BTN_CONFIGUREVALIDATOR      1038
+#define IDC_EDIT1                       1039
+#define IDC_BTN_SEARCH                  1041
+#define IDC_LBL_SEARCHKEY               1042
+#define IDC_CB_MATCH_CASE               1043
+#define IDC_CHECK2                      1044
+#define IDC_CB_MATCH_WHOLE_WORD         1044
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        130
+#define _APS_NEXT_RESOURCE_VALUE        131
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1039
+#define _APS_NEXT_CONTROL_VALUE         1045
 #define _APS_NEXT_SYMED_VALUE           106
 #endif
 #endif

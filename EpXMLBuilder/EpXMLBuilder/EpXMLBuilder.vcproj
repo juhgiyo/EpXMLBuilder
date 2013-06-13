@@ -208,6 +208,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\SearchDlg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\SearchResultDlg.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\stdafx.cpp"
 				>
 				<FileConfiguration
@@ -258,6 +266,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\SearchDlg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SearchResultDlg.h"
+				>
+			</File>
+			<File
 				RelativePath=".\stdafx.h"
 				>
 			</File>
@@ -293,6 +309,10 @@
 			</File>
 			<File
 				RelativePath=".\res\skinnotify.bmp"
+				>
+			</File>
+			<File
+				RelativePath=".\res\text1.bin"
 				>
 			</File>
 		</Filter>
@@ -597,6 +617,14 @@
 			</File>
 			<File
 				RelativePath=".\Core\epPreTextParser.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Core\epXMLSearchResult.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Core\epXMLSearchResult.h"
 				>
 			</File>
 			<File

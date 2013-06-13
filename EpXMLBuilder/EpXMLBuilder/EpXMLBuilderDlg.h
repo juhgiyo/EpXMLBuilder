@@ -18,8 +18,11 @@
 #include "ConfigureValidatorDlg.h"
 #include "NodeChangeDlg.h"
 #include "ValidateResultDlg.h"
-#include "epXMLValidateResult.h"
+#include "SearchResultDlg.h"
+#include "SearchDlg.h"
 
+#include "epXMLValidateResult.h"
+#include "epXMLSearchResult.h"
 using namespace epl;
 
 
@@ -105,6 +108,7 @@ public:
 	afx_msg void OnBnSetfocusBtnAddAttr();
 	afx_msg void OnBnClickedBtnConfigureValidator();
 	afx_msg void OnSizing(UINT fwSide, LPRECT pRect);
+	afx_msg void OnBnClickedBtnSearch();
 
 	bool continueOnChanged();
 	HTREEITEM insertNode(CString nodeName, CString nodeValue,HTREEITEM insertUnder,XNode *node);
@@ -135,7 +139,8 @@ public:
 	CConfigureValidatorDlg m_configureValidatorDlg;
 	CNodeChangeDlg m_nodeChangeDlg;
 	CValidateResultDlg m_validateResultDlg;
-	
+	CSearchResultDlg m_searchResultDlg;
+	CSearchDlg m_searchDlg;
 
 	afx_msg void OnNMDblclkTree1(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnBnClickedBtnValidate();
@@ -144,4 +149,7 @@ public:
 
 	void NodeNameValueChange(HTREEITEM treeItem,CString name,CString value,bool isRoot,bool isNode,XNode* node, XAttr *attr);
 	void ValidateXML(ResultMap & retResultMap);
+	void SearchXML(XMLSearchType searchType,CString iName, CString iValue, bool isMatchCase,bool isMatchWholeWord,SearchResultMap & retResultMap);
+	HTREEITEM GetNextItem(HTREEITEM item);
+	
 };
