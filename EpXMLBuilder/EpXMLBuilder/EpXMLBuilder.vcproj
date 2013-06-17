@@ -204,6 +204,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\NodeAddDlg.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\NodeChangeDlg.cpp"
 				>
 			</File>
@@ -239,6 +243,10 @@
 				RelativePath=".\ValidateResultDlg.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\XMLViewDlg.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -255,6 +263,10 @@
 			</File>
 			<File
 				RelativePath=".\EpXMLBuilderDlg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\NodeAddDlg.h"
 				>
 			</File>
 			<File
@@ -283,6 +295,10 @@
 			</File>
 			<File
 				RelativePath=".\ValidateResultDlg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\XMLViewDlg.h"
 				>
 			</File>
 		</Filter>

@@ -151,6 +151,11 @@ public:
 	void ValidateXML(ResultMap & retResultMap);
 	void SearchXML(XMLSearchType searchType,CString iName, CString iValue, bool isMatchCase,bool isMatchWholeWord,SearchResultMap & retResultMap);
 	void DeleteTreeItem(HTREEITEM &treeItem);
+
+
+	void AddNode();
+	void AddAttribute();
 	HTREEITEM GetNextItem(HTREEITEM item);
 	
+	afx_msg void OnBnClickedBtnXml();
 };

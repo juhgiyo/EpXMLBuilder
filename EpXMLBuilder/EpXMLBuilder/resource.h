@@ -12,6 +12,8 @@
 #define IDD_VALIDATE_RESULT             105
 #define IDD_SEARCH_RESULT               106
 #define IDD_SEARCH                      107
+#define IDD_VIEW_XML                    108
+#define IDD_NODE_ADD                    109
 #define IDR_MAINFRAME                   128
 #define IDB_BITMAP1                     129
 #define IDR_TEXT1                       130
@@ -47,7 +49,9 @@
 #define IDC_CB_ENCODING                 1026
 #define IDC_CB_FILTER                   1026
 #define IDC_CBB_OPTION                  1026
+#define IDC_CBB_NAME                    1026
 #define IDC_BTN_CONFIGURE_VALIDATOR     1027
+#define IDC_CBB_VALUE                   1027
 #define IDC_CB_NUMBER                   1028
 #define IDC_BTN_VALIDATE                1028
 #define IDC_CB_XML                      1029
@@ -62,6 +66,7 @@
 #define IDC_TREE_RESULT                 1035
 #define IDC_TB_MESSAGE                  1036
 #define IDC_BUTTON3                     1037
+#define IDC_BTN_XML                     1037
 #define IDC_BTN_CONFIGUREVALIDATOR      1038
 #define IDC_EDIT1                       1039
 #define IDC_BTN_SEARCH                  1041
@@ -71,6 +76,7 @@
 #define IDC_CB_MATCH_WHOLE_WORD         1044
 #define IDC_RICHEDIT21                  1047
 #define IDC_SYSLINK1                    1048
+#define IDC_LBL_INFO                    1049
 
 // Next default values for new objects
 // 
@@ -78,7 +84,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        131
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1049
+#define _APS_NEXT_CONTROL_VALUE         1050
 #define _APS_NEXT_SYMED_VALUE           106
 #endif
 #endif
