@@ -828,6 +828,7 @@ void CEpXMLBuilderDlg::AddNode()
 		m_isChanged=true;
 		m_treeXML.SortChildren(m_selectedTreeItem);
 		m_treeXML.SetFocus();
+		m_treeXML.SelectItem(insertedItem);
 	}
 }
 void CEpXMLBuilderDlg::AddAttribute()
@@ -882,6 +883,7 @@ void CEpXMLBuilderDlg::AddAttribute()
 		m_isChanged=true;
 		m_treeXML.SortChildren(m_selectedTreeItem);
 		m_treeXML.SetFocus();
+		m_treeXML.SelectItem(insertedItem);
 	}
 }
 void CEpXMLBuilderDlg::OnBnClickedBtnAdd()
