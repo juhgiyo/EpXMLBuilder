@@ -419,8 +419,12 @@ HTREEITEM CEpXMLBuilderDlg::insertNode(CString nodeName, CString nodeValue,HTREE
 		m_treeAttrMap[insertedAttrItem]=node->m_attrs.at(attrTrav);
 	}
 	if(node->m_attrs.size())
+	{
 		m_treeXML.Expand(insertedItem,TVE_EXPAND);
+		m_treeXML.SortChildren(insertedItem);
+	}
 	m_treeXML.Expand(insertUnder,TVE_EXPAND);
+	m_treeXML.SortChildren(insertUnder);
 	return insertedItem;
 }
 

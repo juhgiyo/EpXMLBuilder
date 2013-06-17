@@ -321,7 +321,13 @@ BOOL CNodeAddDlg::PreTranslateMessage(MSG* pMsg)
 		}
 
 	}
-
+	if((pMsg->message == WM_KEYDOWN) && 
+		(pMsg->wParam == VK_RETURN))
+	{
+		
+		OnBnClickedOk();
+		return TRUE;
+	}
 
 	return CDialog::PreTranslateMessage(pMsg);
 }
