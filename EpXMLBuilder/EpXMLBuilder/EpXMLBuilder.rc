@@ -2150,7 +2150,7 @@ BEGIN
     PUSHBUTTON      "Validate (Ctrl+Q)",IDC_BTN_VALIDATE,81,38,75,14
     PUSHBUTTON      "Search (Ctrl+E)",IDC_BTN_SEARCH,158,38,75,14
     PUSHBUTTON      "View XML (Ctrl+P)",IDC_BTN_XML,7,38,74,14
-    LTEXT           """Ctrl+A"" to add a node / ""Ctrl+T"" to add an attribute",IDC_LBL_INFO,7,366,200,8
+    LTEXT           "Select an item and ""Ctrl+A"" to add a node / ""Ctrl+T"" to add an attribute / ""Enter"" to edit a node or an attribute",IDC_LBL_INFO,7,366,555,8
 END
 
 IDD_VALIDATOR DIALOGEX 0, 0, 291, 194
@@ -2241,6 +2241,7 @@ FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,403,261,50,14,WS_GROUP
     EDITTEXT        IDC_EDIT1,7,7,446,254,ES_MULTILINE | ES_AUTOHSCROLL | ES_READONLY | WS_VSCROLL | WS_HSCROLL
+    CONTROL         "Single Line",IDC_CB_SINGLE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,265,49,10
 END
 
 IDD_NODE_ADD DIALOGEX 0, 0, 247, 91

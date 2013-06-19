@@ -883,7 +883,7 @@ void CEpXMLBuilderDlg::AddAttribute()
 		m_isChanged=true;
 		m_treeXML.SortChildren(m_selectedTreeItem);
 		m_treeXML.SetFocus();
-		m_treeXML.SelectItem(insertedItem);
+		m_treeXML.SelectItem(m_selectedTreeItem);
 	}
 }
 void CEpXMLBuilderDlg::OnBnClickedBtnAdd()
@@ -1828,6 +1828,37 @@ void CEpXMLBuilderDlg::OnBnClickedBtnXml()
 {
 	// TODO: Add your control notification handler code here
 	CXMLViewDlg xmlDlg;
+	DISP_OPT dispOpt=DISP_OPT::optDefault;
+	dispOpt.m_newline=false;
 	xmlDlg.m_xmlString=m_xmlFile.GetXML();
+	xmlDlg.m_xmlStringSingle=m_xmlFile.GetXML(&dispOpt);
+
+	bool isOpen=false;
+	for(int stringTrav=0;stringTrav<xmlDlg.m_xmlStringSingle.GetLength();stringTrav++)
+	{
+		if(xmlDlg.m_xmlStringSingle.GetAt(stringTrav)==_T('<'))
+		{
+			isOpen=true;
+			continue;
+		}
+		if(xmlDlg.m_xmlStringSingle.GetAt(stringTrav)==_T('>'))
+		{
+			isOpen=false;
+			continue;
+		}
+		if(isOpen)
+			continue;
+
+		if(xmlDlg.m_xmlStringSingle.GetAt(stringTrav)==_T(' ')
+			||xmlDlg.m_xmlStringSingle.GetAt(stringTrav)==_T('\n')
+			||xmlDlg.m_xmlStringSingle.GetAt(stringTrav)==_T('\r')
+			||xmlDlg.m_xmlStringSingle.GetAt(stringTrav)==_T('\t')
+			)
+		{
+			xmlDlg.m_xmlStringSingle.Delete(stringTrav);
+			stringTrav--;
+		}
+	}
+	
 	xmlDlg.DoModal();
 }

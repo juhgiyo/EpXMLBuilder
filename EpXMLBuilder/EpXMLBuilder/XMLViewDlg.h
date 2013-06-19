@@ -23,5 +23,8 @@ protected:
 
 public:
 	CString m_xmlString;
+	CString m_xmlStringSingle;
 	CEdit m_tbXML;
+	afx_msg void OnBnClickedCbSingle();
+	CButton m_cbSingleLine;
 };
