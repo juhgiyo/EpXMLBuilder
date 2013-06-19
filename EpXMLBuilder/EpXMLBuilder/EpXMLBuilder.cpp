@@ -5,7 +5,7 @@
 #include "stdafx.h"
 #include "EpXMLBuilder.h"
 #include "EpXMLBuilderDlg.h"
-
+#include "InitialCommandLineInfo.h"
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -56,6 +56,10 @@ BOOL CEpXMLBuilderApp::InitInstance()
 	// TODO: You should modify this string to be something appropriate
 	// such as the name of your company or organization
 	SetRegistryKey(_T("Local AppWizard-Generated Applications"));
+
+	InitialCommandLineInfo cmdLine;
+	ParseCommandLine(cmdLine);
+	XMLUtil::SetIsWinService(cmdLine.IsWinService());
 
 	CEpXMLBuilderDlg dlg;
 	m_pMainWnd = &dlg;

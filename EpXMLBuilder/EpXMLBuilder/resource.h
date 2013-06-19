@@ -14,6 +14,7 @@
 #define IDD_SEARCH                      107
 #define IDD_VIEW_XML                    108
 #define IDD_NODE_ADD                    109
+#define IDD_WINSERVICE_RESULT           110
 #define IDR_MAINFRAME                   128
 #define IDB_BITMAP1                     129
 #define IDR_TEXT1                       130
@@ -79,6 +80,8 @@
 #define IDC_SYSLINK1                    1048
 #define IDC_LBL_INFO                    1049
 #define IDC_CHECK1                      1050
+#define IDC_TB_RESULT                   1051
+#define IDC_BTN_WINSERVICE              1052
 
 // Next default values for new objects
 // 
@@ -86,7 +89,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        131
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1051
+#define _APS_NEXT_CONTROL_VALUE         1053
 #define _APS_NEXT_SYMED_VALUE           106
 #endif
 #endif

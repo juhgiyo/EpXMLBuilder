@@ -27,4 +27,6 @@ public:
 	CEdit m_tbXML;
 	afx_msg void OnBnClickedCbSingle();
 	CButton m_cbSingleLine;
+	afx_msg void OnBnClickedBtnWinservice();
+	CButton m_btnWinServiceCLI;
 };

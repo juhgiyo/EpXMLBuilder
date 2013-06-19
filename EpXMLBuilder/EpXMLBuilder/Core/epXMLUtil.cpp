@@ -3,7 +3,16 @@
 #include "epXMLValidatorProperties.h"
 
 using namespace epl;
+bool g_isWinService=false;
 
+bool XMLUtil::IsWinService()
+{
+	return g_isWinService;
+}
+void XMLUtil::SetIsWinService(bool isWinService)
+{
+	g_isWinService=isWinService;
+}
 CString XMLUtil::NodeFormat(CString nodeName, CString nodeValue)
 {
 	nodeName=nodeName.Trim();

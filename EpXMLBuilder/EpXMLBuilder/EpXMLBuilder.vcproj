@@ -244,6 +244,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\WinServiceCLIResultDlg.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\XMLViewDlg.cpp"
 				>
 			</File>
@@ -295,6 +299,10 @@
 			</File>
 			<File
 				RelativePath=".\ValidateResultDlg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\WinServiceCLIResultDlg.h"
 				>
 			</File>
 			<File
@@ -665,6 +673,14 @@
 			</File>
 			<File
 				RelativePath=".\Core\epXMLValidatorProperties.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Core\InitialCommandLineInfo.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Core\InitialCommandLineInfo.h"
 				>
 			</File>
 		</Filter>

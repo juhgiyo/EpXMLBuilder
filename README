@@ -12,6 +12,9 @@ FEATURES
 - Modifiable validation check
 - Search nodes or attributes
 
+* EpWinServiceCLI Integration
+- add -winservice argument for executable
+
 USAGE
 
 To find the usage examples, please see the wiki page at <https://github.com/juhgiyo/epxmlbuilder/wiki/EpXMLBuilder-Usage-Guide>

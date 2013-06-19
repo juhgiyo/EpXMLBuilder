@@ -27,6 +27,10 @@ public:
 	static CString ResultFormat(CString name, CString value,bool isNode, XMLValidateType type);
 	static ValidState ValidateName(CString name,CString &retMessage,bool isNode=true,XNode* parentNode=NULL,XAttr *checkAttr=NULL);
 
+	static bool IsWinService();
+	static void SetIsWinService(bool isWinService);
+	
+
 	
 
 };
