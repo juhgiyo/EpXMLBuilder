@@ -1,6 +1,7 @@
 #pragma once
 #include "afxwin.h"
-
+#include "epl.h"
+using namespace epl;
 
 // CWinServiceCLIResultDlg dialog
 
@@ -22,4 +23,7 @@ protected:
 public:
 	CEdit m_tbResult;
 	CString m_resultString;
+	XMLFile m_xmlFile;
+	CTaskbarNotifier m_notifyWin;
+	afx_msg void OnBnClickedExport();
 };

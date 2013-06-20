@@ -82,6 +82,7 @@
 #define IDC_CHECK1                      1050
 #define IDC_TB_RESULT                   1051
 #define IDC_BTN_WINSERVICE              1052
+#define IDC_Export                      1053
 
 // Next default values for new objects
 // 
@@ -89,7 +90,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        131
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1053
+#define _APS_NEXT_CONTROL_VALUE         1054
 #define _APS_NEXT_SYMED_VALUE           106
 #endif
 #endif
