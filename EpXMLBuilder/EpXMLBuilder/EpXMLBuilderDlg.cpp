@@ -478,7 +478,6 @@ void CEpXMLBuilderDlg::OnBnClickedBtnLoad()
 
 	CFileDialog fileDialog(TRUE,_T("xml"),NULL,OFN_FILEMUSTEXIST,_T("XML Files (*.xml)|*.xml|All Files (*.*)|*.*||"),this );
 	fileDialog.m_pOFN->lpstrTitle=_T("XML Data File");
-	fileDialog.m_pOFN->lpstrInitialDir=_T("c:");
 	int result = fileDialog.DoModal();
 	if(result==IDOK && fileDialog.GetPathName().GetLength()>0)
 	{
@@ -1295,7 +1294,6 @@ void CEpXMLBuilderDlg::OnBnClickedBtnLoadPreText()
 
 	CFileDialog fileDialog(TRUE,_T("ini"),NULL,OFN_FILEMUSTEXIST,_T("INI Files (*.ini)|*.ini|All Files (*.*)|*.*||"),this );
 	fileDialog.m_pOFN->lpstrTitle=_T("Pre Text Data File");
-	fileDialog.m_pOFN->lpstrInitialDir=_T("c:");
 	int result = fileDialog.DoModal();
 	if(result==IDOK && fileDialog.GetPathName().GetLength()>0)
 	{
