@@ -39,7 +39,7 @@ DONATION
 ---------
 [![Gratipay][gratipay-image]][gratipay-url]
 
-or donation by Pledgie 
+or donation by Pledgie  
 <a href='https://pledgie.com/campaigns/27770'><img alt='Click here to lend your support to: EpXMLBuilder and make a donation at pledgie.com !' src='https://pledgie.com/campaigns/27770.png?skin_name=chrome' border='0' ></a>
 
 LICENSE
