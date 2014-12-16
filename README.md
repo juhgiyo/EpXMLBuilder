@@ -1,3 +1,5 @@
+<a href='https://pledgie.com/campaigns/27770'><img alt='Click here to lend your support to: EpXMLBuilder and make a donation at pledgie.com !' src='https://pledgie.com/campaigns/27770.png?skin_name=chrome' border='0' ></a>
+
 EpXMLBuilder
 =======================
 #### GUI XML Building and Viewing Tool ####
@@ -34,6 +36,10 @@ REFERENCE
 ---------
 * [EpLibrary 2.0](https://github.com/juhgiyo/EpLibrary)
 
+DONATION
+---------
+
+<a href='https://pledgie.com/campaigns/27770'><img alt='Click here to lend your support to: EpXMLBuilder and make a donation at pledgie.com !' src='https://pledgie.com/campaigns/27770.png?skin_name=chrome' border='0' ></a>
 
 LICENSE
 -------
